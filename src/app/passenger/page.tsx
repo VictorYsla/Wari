@@ -12,14 +12,14 @@ export default function PassengerPage() {
   const [isTracking, setIsTracking] = useState(false)
   const { toast } = useToast()
 
-  const handleQRScanned = (data) => {
+  const handleQRScanned = (data:string) => {
     if (data) {
       setVehicleKey(data)
       startTracking(data)
     }
   }
 
-  const startTracking = (key) => {
+  const startTracking = (key:string) => {
     setIsTracking(true)
     toast({
       title: "Seguimiento iniciado",
