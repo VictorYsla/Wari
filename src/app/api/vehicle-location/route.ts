@@ -10,9 +10,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Call the external API to get vehicle location
-    
     const apiUrl = `${hawkBaseURL}${hawkInitialParams}${key}${hawkEndParams}`
+    console.log("apiUrl:", apiUrl)
 
     const response = await fetch(apiUrl)
 
@@ -21,37 +20,32 @@ export async function GET(request: Request) {
     }
 
     const data = await response.json()
+    console.log("data:", data)
 
-    // Process the API response
-    // Note: This is a placeholder. You'll need to adapt this to the actual API response format
-    if (data && Array.isArray(data.locations) && data.locations.length > 0) {
-      // Extract the most recent location
-      const latestLocation = data.locations[0]
+    const firstEntry = Object.values(data)[0] as any
 
+    if (firstEntry && firstEntry.lat && firstEntry.lng) {
       return NextResponse.json({
         success: true,
         location: {
-          latitude: latestLocation.latitude,
-          longitude: latestLocation.longitude,
-          timestamp: latestLocation.timestamp,
-          address: latestLocation.address || null,
+          latitude: parseFloat(firstEntry.lat),
+          longitude: parseFloat(firstEntry.lng),
+          timestamp: firstEntry.dt_tracker,
+          address: null, // No se provee dirección, puedes calcularla con otra API si deseas
         },
       })
     } else {
-      // If no location data is available
       return NextResponse.json(
         {
           success: false,
-          message: "No location data available for this vehicle",
+          message: "No valid location data found in the response.",
         },
-        { status: 404 },
+        { status: 404 }
       )
     }
   } catch (error) {
     console.error("Error fetching vehicle location:", error)
 
-    // For demo purposes, return mock data if the API call fails
-    // In production, you would handle this differently
     return NextResponse.json({
       success: true,
       location: {
