@@ -6,6 +6,8 @@ import { useToast } from "@/hooks/use-toast"
 import { MapPin, Clock } from "lucide-react"
 import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api"
 import { googleMapsApiKey } from "@/app/api/helpers"
+const moment = require('moment-timezone');
+
 
 interface VehicleTrackerProps {
   vehicleKey: string
@@ -85,8 +87,12 @@ export function VehicleTracker({ vehicleKey }: VehicleTrackerProps) {
   }
 
   const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp)
-    return date.toLocaleTimeString()
+    const formattedDate = moment
+    .utc(timestamp, 'YYYY-MM-DD HH:mm:ss') // Interpretar como UTC
+    .tz('America/Lima') // Convertir a GMT-5 (Ej: Perú, Colombia, Ecuador)
+    .format('HH:mm:ss'); // Formato de salida
+
+    return formattedDate
   }
 
   if (loadError) {
