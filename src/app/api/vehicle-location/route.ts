@@ -11,7 +11,8 @@ export async function GET(request: Request) {
 
   try {
     const apiUrl = `${hawkBaseURL}${hawkInitialParams}${key}${hawkEndParams}`
-    console.log("apiUrl:", apiUrl)
+
+    alert(apiUrl)
 
     const response = await fetch(apiUrl)
 
@@ -20,7 +21,6 @@ export async function GET(request: Request) {
     }
 
     const data = await response.json()
-    console.log("data:", data)
 
     const firstEntry = Object.values(data)[0] as any
 
