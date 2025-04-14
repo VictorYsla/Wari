@@ -26,7 +26,7 @@ export default function DriverPage() {
     checkAuth()
   }, [])
 
-  const handleLogin = (e) => {
+  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     // In a real app, you would validate credentials against your backend
     if (vehicleKey.trim()) {
