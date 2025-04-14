@@ -36,9 +36,10 @@ export function VehicleTracker({ vehicleKey }: VehicleTrackerProps) {
     googleMapsApiKey: googleMapsApiKey || "",
   })
 
-  console.log("googleMapsApiKey:",googleMapsApiKey)
-
   useEffect(() => {
+
+alert ("googleMapsApiKey:" + googleMapsApiKey)
+
     // Fetch initial location
     fetchVehicleLocation()
 
