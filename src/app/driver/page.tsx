@@ -29,14 +29,6 @@ interface DeviceObject {
   plate_number: string
 }
 
-interface ActiveTrip {
-  id: string
-  isActive: boolean
-  destination: string
-  imei: string
-  createdAt: string
-  updatedAt: string
-}
 
 export default function DriverPage() {
   const [plateNumber, setPlateNumber] = useState("")
@@ -46,7 +38,7 @@ export default function DriverPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [tripId, setTripId] = useState("")
   const [vehicleDetails, setVehicleDetails] = useState<DeviceObject | null>(null)
-  const [activeTrip, setActiveTrip] = useState<ActiveTrip | null>(null)
+  const [activeTrip, setActiveTrip] = useState<Trip | null>(null)
   const { toast } = useToast()
 
   // Mejorar la función findVehicleByPlate para validar correctamente los datos
@@ -178,7 +170,7 @@ export default function DriverPage() {
     try {
       const response = await fetch("/api/register-trip", {
         method: "POST",
-        // headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           imei,
         }),
@@ -198,6 +190,7 @@ export default function DriverPage() {
       }
 
       setTripId(typedRegisterTripResponse.data.id)
+
     } catch (error) {
       console.error("Error en createTrip:", error)
       throw error // Re-lanzar para manejo en el nivel superior
@@ -207,20 +200,25 @@ export default function DriverPage() {
   useTripSocket((trip: Trip) => {
     console.log("Evento de socket recibido:", trip)
 
+    setActiveTrip(trip)
+
+
     toast({
       title: "QR expirado",
       description: "Se actualizará a un nuevo QR",
     })
 
     // Crear nuevo viaje con manejo de errores
-    createTrip(trip.imei).catch((error) => {
-      console.error("Error al crear nuevo viaje desde evento de socket:", error)
-      toast({
-        title: "Error al actualizar QR",
-        description: "No se pudo generar un nuevo código QR. Intente nuevamente.",
-        variant: "destructive",
+    if(!trip.is_active){
+      createTrip(trip.imei).catch((error) => {
+        console.error("Error al crear nuevo viaje desde evento de socket:", error)
+        toast({
+          title: "Error al actualizar QR",
+          description: "No se pudo generar un nuevo código QR. Intente nuevamente.",
+          variant: "destructive",
+        })
       })
-    })
+    }
   })
 
   // Mejorar handleLogout para manejar errores y validar datos
@@ -380,7 +378,7 @@ export default function DriverPage() {
 
           {isGeneratingQR ? (
             <div className="flex flex-col items-center space-y-4">
-              {activeTrip && activeTrip.isActive ? (
+              {activeTrip && activeTrip.is_active ? (
                 <div className="p-4 bg-muted rounded-lg w-full mb-2">
                   <h3 className="font-medium mb-1">Estado del QR</h3>
                   {activeTrip.destination ? (
@@ -389,7 +387,7 @@ export default function DriverPage() {
                         <strong>Destino:</strong> {activeTrip.destination}
                       </p>
                       <p className="text-sm">
-                        <strong>Iniciado:</strong> {new Date(activeTrip.createdAt).toLocaleString()}
+                        <strong>Iniciado:</strong> {new Date(activeTrip.created_at).toLocaleString()}
                       </p>
                     </>
                   ) : (
