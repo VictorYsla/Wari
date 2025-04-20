@@ -78,12 +78,14 @@ export async function GET(request: Request) {
     } else {
       return NextResponse.json(
         {
-          success: false,
-          message: "No vehicle found with the provided plate number",
+          success: true,
+          vehicle: null,
+          message: "No se encontró un vehículo con la placa ingresada",
         },
-        { status: 404 },
+        { status: 200 },
       )
     }
+    
   } catch (error) {
     console.error("Error searching for vehicle:", error)
 

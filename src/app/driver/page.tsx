@@ -55,6 +55,8 @@ export default function DriverPage() {
       // Call API to search for vehicle by plate number and verify IMEI
       const response = await fetch(`/api/search-vehicle?plate=${plate}`)
 
+      console.log("response:",response)
+
       if (!response.ok) {
         throw new Error(`Error del servidor: ${response.status}`)
       }
