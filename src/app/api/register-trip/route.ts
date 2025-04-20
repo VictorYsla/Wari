@@ -1,0 +1,49 @@
+import { NextRequest, NextResponse } from "next/server"
+import { baseURL } from "../helpers"
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+
+    console.log("BODY:",body)
+
+    const { imei } = body
+
+    if (!imei) {
+      return NextResponse.json(
+        { success: false, message: "IMEI is required" },
+        { status: 400 }
+      )
+    }
+
+    console.log("imeiimeiimei:",imei)
+
+    const response = await fetch(`${baseURL}/trip/create-trip`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        imei
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.message || "Error creating trip")
+    }
+
+    const data = await response.json()
+
+    return NextResponse.json({ success: true, data })
+  } catch (error: any) {
+    console.error("Error in /api/create-trip:", error)
+    return NextResponse.json(
+      { success: false, message: error.message },
+      { status: 500 }
+    )
+  }
+}
+
+
+

@@ -10,6 +10,8 @@ interface QRCodeGeneratorProps {
 export function QRCodeGenerator({ vehicleKey }: QRCodeGeneratorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
+  console.log("vehicleKey:",vehicleKey)
+
   useEffect(() => {
     if (canvasRef.current && vehicleKey) {
       QRCode.toCanvas(

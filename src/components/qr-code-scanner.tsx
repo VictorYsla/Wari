@@ -79,10 +79,6 @@ export function QRCodeScanner({ onScan }: QRCodeScannerProps) {
           Detener escáner
         </Button>
       )}
-
-      <p className="text-sm text-muted-foreground text-center">
-        Apunta la cámara al código QR del vehículo para iniciar el seguimiento
-      </p>
     </div>
   )
 }

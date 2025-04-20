@@ -1,20 +1,34 @@
-import type { Metadata } from 'next'
-import './globals.css'
+import type { ReactNode } from "react"
+import { Toaster } from "@/components/ui/toaster"
+import { googleMapsApiKey } from "./api/helpers"
+import "./globals.css"
+import { ThemeProvider } from "@/components/theme-provider"
 
-export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+export const metadata = {
+  title: "Wari - Seguimiento de Vehículos",
+  description: "Aplicación de seguimiento en tiempo real de vehículos de transporte",
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+interface RootLayoutProps {
+  children: ReactNode
+}
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="es" suppressHydrationWarning>
+      <head>
+        <script
+          src={`https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places`}
+          async
+          defer
+        ></script>
+      </head>
+      <body>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          {children}
+          <Toaster />
+        </ThemeProvider>
+      </body>
     </html>
   )
 }

@@ -3,14 +3,14 @@
 import { useState, useEffect, useRef, ReactNode, MouseEventHandler } from "react"
 import { Card } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import { MapPin, Clock } from "lucide-react"
-import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api"
+import { MapPin, Clock, Navigation } from "lucide-react"
+import { useJsApiLoader } from "@react-google-maps/api"
+import type { Destination } from "./destination-selector"
 import { googleMapsApiKey } from "@/app/api/helpers"
-const moment = require('moment-timezone');
-
 
 interface VehicleTrackerProps {
   vehicleKey: string
+  destination?: Destination | null
 }
 
 interface LocationData {
@@ -26,12 +26,23 @@ const mapContainerStyle = {
   borderRadius: "0.5rem",
 }
 
-export function VehicleTracker({ vehicleKey }: VehicleTrackerProps) {
+// Declare google variable
+declare global {
+  interface Window {
+    google: any
+  }
+}
+
+export function VehicleTracker({ vehicleKey, destination }: VehicleTrackerProps) {
   const [location, setLocation] = useState<LocationData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const { toast } = useToast()
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const mapRef = useRef<google.maps.Map | null>(null)
+  const vehicleMarkerRef = useRef<google.maps.Marker | null>(null)
+  const destinationMarkerRef = useRef<google.maps.Marker | null>(null)
+  const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null)
 
   // Load Google Maps API
   const { isLoaded, loadError } = useJsApiLoader({
@@ -39,8 +50,6 @@ export function VehicleTracker({ vehicleKey }: VehicleTrackerProps) {
   })
 
   useEffect(() => {
-
-
     // Fetch initial location
     fetchVehicleLocation()
 
@@ -54,6 +63,13 @@ export function VehicleTracker({ vehicleKey }: VehicleTrackerProps) {
       }
     }
   }, [vehicleKey])
+
+  // Update map when location or destination changes
+  useEffect(() => {
+    if (isLoaded && location) {
+      updateMap()
+    }
+  }, [isLoaded, location, destination])
 
   const fetchVehicleLocation = async () => {
     try {
@@ -86,13 +102,120 @@ export function VehicleTracker({ vehicleKey }: VehicleTrackerProps) {
     }
   }
 
-  const formatTimestamp = (timestamp: string) => {
-    const formattedDate = moment
-    .utc(timestamp, 'YYYY-MM-DD HH:mm:ss') // Interpretar como UTC
-    .tz('America/Lima') // Convertir a GMT-5 (Ej: Perú, Colombia, Ecuador)
-    .format('HH:mm:ss'); // Formato de salida
+  const updateMap = () => {
+    if (!isLoaded || !location) return
 
-    return formattedDate
+    const vehiclePosition = { lat: location.latitude, lng: location.longitude }
+
+    // Initialize map if not already done
+    if (!mapRef.current) {
+      const map = new window.google.maps.Map(document.getElementById("map-container")!, {
+        center: vehiclePosition,
+        zoom: 15,
+        disableDefaultUI: true,
+        zoomControl: true,
+        streetViewControl: false,
+        mapTypeControl: false,
+      })
+      mapRef.current = map
+
+      // Initialize directions renderer
+      const directionsRenderer = new window.google.maps.DirectionsRenderer({
+        suppressMarkers: true,
+        polylineOptions: {
+          strokeColor: "#4F46E5",
+          strokeWeight: 5,
+          strokeOpacity: 0.7,
+        },
+      })
+      directionsRenderer.setMap(map)
+      directionsRendererRef.current = directionsRenderer
+    }
+
+    // Update or create vehicle marker
+    if (vehicleMarkerRef.current) {
+      vehicleMarkerRef.current.setPosition(vehiclePosition)
+    } else {
+      const vehicleMarker = new window.google.maps.Marker({
+        position: vehiclePosition,
+        map: mapRef.current,
+        icon: {
+          path: window.google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+          scale: 6,
+          fillColor: "#4F46E5",
+          fillOpacity: 1,
+          strokeWeight: 2,
+          strokeColor: "#FFFFFF",
+          rotation: 0, // We could update this based on heading if available
+        },
+        title: "Vehículo",
+      })
+      vehicleMarkerRef.current = vehicleMarker
+    }
+
+    // Update or create destination marker if destination exists
+    if (destination) {
+      const destinationPosition = { lat: destination.lat, lng: destination.lng }
+
+      if (destinationMarkerRef.current) {
+        destinationMarkerRef.current.setPosition(destinationPosition)
+      } else {
+        const destinationMarker = new window.google.maps.Marker({
+          position: destinationPosition,
+          map: mapRef.current,
+          icon: {
+            path: window.google.maps.SymbolPath.CIRCLE,
+            scale: 10,
+            fillColor: "#10B981",
+            fillOpacity: 0.7,
+            strokeWeight: 2,
+            strokeColor: "#FFFFFF",
+          },
+          title: "Destino",
+        })
+        destinationMarkerRef.current = destinationMarker
+      }
+
+      // Calculate and display route
+      const directionsService = new window.google.maps.DirectionsService()
+      directionsService.route(
+        {
+          origin: vehiclePosition,
+          destination: destinationPosition,
+          travelMode: window.google.maps.TravelMode.DRIVING,
+        },
+        (result: google.maps.DirectionsResult | null, status: google.maps.DirectionsStatus) => {
+          if (status === window.google.maps.DirectionsStatus.OK && result) {
+            directionsRendererRef.current?.setDirections(result)
+
+            // Fit map to show both markers and route
+            const bounds = new window.google.maps.LatLngBounds()
+            bounds.extend(vehiclePosition)
+            bounds.extend(destinationPosition)
+            mapRef.current?.fitBounds(bounds)
+          }
+        },
+      )
+    } else {
+      // If no destination, just center on vehicle
+      mapRef?.current?.panTo(vehiclePosition)
+
+      // Clear any existing directions
+      if (directionsRendererRef.current) {
+        directionsRendererRef.current.setDirections({ routes: [] } as any)
+      }
+
+      // Remove destination marker if it exists
+      if (destinationMarkerRef.current) {
+        destinationMarkerRef.current.setMap(null)
+        destinationMarkerRef.current = null
+      }
+    }
+  }
+
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp)
+    return date.toLocaleTimeString()
   }
 
   if (loadError) {
@@ -114,24 +237,8 @@ export function VehicleTracker({ vehicleKey }: VehicleTrackerProps) {
           <div className="flex items-center justify-center h-full">
             <p className="text-destructive">{error}</p>
           </div>
-        ) : location ? (
-          <GoogleMap
-            mapContainerStyle={mapContainerStyle}
-            center={{ lat: location.latitude, lng: location.longitude }}
-            zoom={15}
-            options={{
-              disableDefaultUI: true,
-              zoomControl: true,
-              streetViewControl: false,
-              mapTypeControl: false,
-            }}
-          >
-            <Marker position={{ lat: location.latitude, lng: location.longitude }} />
-          </GoogleMap>
         ) : (
-          <div className="flex items-center justify-center h-full">
-            <p>No hay datos de ubicación disponibles</p>
-          </div>
+          <div id="map-container" style={mapContainerStyle}></div>
         )}
       </div>
 
@@ -140,8 +247,16 @@ export function VehicleTracker({ vehicleKey }: VehicleTrackerProps) {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm">{location.address || `${location.latitude}, ${location.longitude}`}</p>
+              <p className="text-sm">
+                {location.address || `${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}`}
+              </p>
             </div>
+            {destination && (
+              <div className="flex items-center gap-2">
+                <Navigation className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm">Destino: {destination.address}</p>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
               <p className="text-sm">Última actualización: {formatTimestamp(location.timestamp)}</p>

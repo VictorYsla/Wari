@@ -1,84 +1,350 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { QRCodeGenerator } from "@/components/qr-code-generator"
 import { useToast } from "@/hooks/use-toast"
+import { Loader2, ShieldCheck } from "lucide-react"
+import type { CreateTripResponse, Trip } from "../types/types"
+import useTripSocket from "@/hooks/useTripSocket"
+
+// Interfaces para los tipos de datos
+interface DeviceObject {
+  name: string
+  imei: string
+  protocol: string
+  net_protocol: string
+  ip: string
+  port: string
+  active: string
+  expire: string
+  expire_dt: Date
+  device: string
+  sim_number: string
+  model: string
+  vin: string
+  plate_number: string
+}
+
+interface ActiveTrip {
+  id: string
+  isActive: boolean
+  destination: string
+  imei: string
+  createdAt: string
+  updatedAt: string
+}
 
 export default function DriverPage() {
-  const [vehicleKey, setVehicleKey] = useState("")
+  const [plateNumber, setPlateNumber] = useState("")
+  const [imeiLastDigits, setImeiLastDigits] = useState("")
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isGeneratingQR, setIsGeneratingQR] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [tripId, setTripId] = useState("")
+  const [vehicleDetails, setVehicleDetails] = useState<DeviceObject | null>(null)
+  const [activeTrip, setActiveTrip] = useState<ActiveTrip | null>(null)
   const { toast } = useToast()
 
-  // Simulate authentication check
-  useEffect(() => {
-    // In a real app, you would check if the driver is authenticated
-    const checkAuth = () => {
-      // This is just a placeholder. In a real app, you would check session/cookies
-      const isAuth = localStorage.getItem("driverAuthenticated") === "true"
-      setIsAuthenticated(isAuth)
-    }
+  // Mejorar la función findVehicleByPlate para validar correctamente los datos
+  const findVehicleByPlate = async (plate: string, imeiLastDigits: string) => {
+    try {
+      // Call API to search for vehicle by plate number and verify IMEI
+      const response = await fetch(`/api/search-vehicle?plate=${plate}`)
 
-    checkAuth()
-  }, [])
+      if (!response.ok) {
+        throw new Error(`Error del servidor: ${response.status}`)
+      }
 
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    // In a real app, you would validate credentials against your backend
-    if (vehicleKey.trim()) {
-      localStorage.setItem("driverAuthenticated", "true")
-      localStorage.setItem("vehicleKey", vehicleKey)
-      setIsAuthenticated(true)
-      toast({
-        title: "Inicio de sesión exitoso",
-        description: "Ahora puedes generar el código QR para tu vehículo.",
-      })
-    } else {
+      const data = await response.json()
+
+      // Verificar que data.vehicle exista antes de acceder a sus propiedades
+      if (!data.success || !data.vehicle) {
+        toast({
+          title: "Verificación fallida",
+          description: data.message || "No se pudo encontrar el vehículo con la placa proporcionada.",
+          variant: "destructive",
+        })
+        return null
+      }
+
+      // Verificar que el IMEI exista
+      if (!data.vehicle.imei) {
+        toast({
+          title: "Error de datos",
+          description: "El vehículo no tiene un IMEI registrado.",
+          variant: "destructive",
+        })
+        return null
+      }
+
+      const last4Imei = data.vehicle.imei.slice(-4)
+
+      if (imeiLastDigits !== last4Imei) {
+        toast({
+          title: "Credenciales no válidas",
+          description: "Los últimos 4 dígitos del IMEI no coinciden.",
+          variant: "destructive",
+        })
+        return null
+      }
+
+      // Almacenar detalles del vehículo
+      setVehicleDetails(data.vehicle)
+      localStorage.setItem("vehicleDetails", JSON.stringify(data.vehicle))
+      return data.vehicle
+    } catch (error) {
+      console.error("Error searching for vehicle:", error)
       toast({
         title: "Error",
-        description: "Por favor ingresa una clave de vehículo válida.",
+        description:
+          error instanceof Error ? error.message : "Ocurrió un error al buscar el vehículo. Intente nuevamente.",
         variant: "destructive",
       })
+      return null
     }
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem("driverAuthenticated")
-    localStorage.removeItem("vehicleKey")
-    setIsAuthenticated(false)
-    setIsGeneratingQR(false)
+  // Mejorar handleLogin para manejar errores y estados de carga correctamente
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    if (!plateNumber.trim()) {
+      toast({
+        title: "Error",
+        description: "Por favor ingresa la placa del vehículo.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!imeiLastDigits.trim() || imeiLastDigits.length !== 4 || !/^\d{4}$/.test(imeiLastDigits)) {
+      toast({
+        title: "Error",
+        description: "Por favor ingresa los 4 dígitos de tu código de seguridad.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const vehicle = await findVehicleByPlate(plateNumber.trim(), imeiLastDigits.trim())
+
+      if (vehicle && vehicle.imei) {
+        localStorage.setItem("driverAuthenticated", "true")
+
+        try {
+          await createTrip(vehicle.imei)
+
+          setIsAuthenticated(true)
+
+          toast({
+            title: "Verificación exitosa",
+            description: `Vehículo encontrado: ${vehicle.name}`,
+          })
+        } catch (error) {
+          toast({
+            title: "Error al crear viaje",
+            description: error instanceof Error ? error.message : "No se pudo crear el viaje. Intente nuevamente.",
+            variant: "destructive",
+          })
+        }
+      }
+    } catch (error) {
+      console.error("Error en el proceso de login:", error)
+      toast({
+        title: "Error de autenticación",
+        description: "Ocurrió un error durante el proceso de autenticación.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
+  // Mejorar createTrip para manejar errores y validar respuestas
+  const createTrip = async (imei: string) => {
+    if (!imei) {
+      throw new Error("IMEI no válido")
+    }
+
+    try {
+      const response = await fetch("/api/register-trip", {
+        method: "POST",
+        // headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imei,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `Error al registrar viaje: ${response.status}`)
+      }
+
+      const typedRegisterTripResponse = (await response.json()) as CreateTripResponse
+      
+      console.log("typedRegisterTripResponse:",typedRegisterTripResponse)
+
+      if (!typedRegisterTripResponse.success || !typedRegisterTripResponse.data || !typedRegisterTripResponse.data.id) {
+        throw new Error("Respuesta inválida del servidor al crear viaje")
+      }
+
+      setTripId(typedRegisterTripResponse.data.id)
+    } catch (error) {
+      console.error("Error en createTrip:", error)
+      throw error // Re-lanzar para manejo en el nivel superior
+    }
+  }
+
+  useTripSocket((trip: Trip) => {
+    console.log("Evento de socket recibido:", trip)
+
+    toast({
+      title: "QR expirado",
+      description: "Se actualizará a un nuevo QR",
+    })
+
+    // Crear nuevo viaje con manejo de errores
+    createTrip(trip.imei).catch((error) => {
+      console.error("Error al crear nuevo viaje desde evento de socket:", error)
+      toast({
+        title: "Error al actualizar QR",
+        description: "No se pudo generar un nuevo código QR. Intente nuevamente.",
+        variant: "destructive",
+      })
+    })
+  })
+
+  // Mejorar handleLogout para manejar errores y validar datos
+  const handleLogout = async (imei: string) => {
+    setIsLoading(true)
+
+    try {
+      if (!imei) {
+        throw new Error("IMEI no válido para cerrar sesión")
+      }
+
+      // Detener monitoreo del viaje
+      const stopMonitoringRes = await fetch(`/api/stop-trip-monitoring?imei=${imei}`, {
+        method: "POST",
+      })
+
+      if (!stopMonitoringRes.ok) {
+        console.warn("Error al detener monitoreo:", await stopMonitoringRes.text())
+        // Continuamos a pesar del error
+      }
+
+      // Actualizar estado del viaje solo si hay un ID de viaje válido
+      if (tripId) {
+        const updateTripRes = await fetch(`/api/update-trip?id=${tripId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            is_active: false,
+          }),
+        })
+
+        if (!updateTripRes.ok) {
+          console.warn("Error al actualizar viaje:", await updateTripRes.text())
+          // Continuamos a pesar del error
+        } else {
+          // Solo intentamos procesar la respuesta JSON si la respuesta fue exitosa
+          const updateData = await updateTripRes.json().catch(() => ({}))
+          console.log("Respuesta de cierre de viaje:", updateData)
+        }
+      }
+
+      // Limpiar estados y almacenamiento local
+      localStorage.removeItem("driverAuthenticated")
+      localStorage.removeItem("vehicleDetails")
+      setIsAuthenticated(false)
+      setIsGeneratingQR(false)
+      setVehicleDetails(null)
+      setTripId("")
+      setPlateNumber("")
+      setImeiLastDigits("")
+      setActiveTrip(null)
+
+      toast({
+        title: "Sesión cerrada",
+        description: "Has cerrado sesión correctamente.",
+      })
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Ocurrió un error al cerrar sesión.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Mejorar generateQR para validar mejor el tripId
   const generateQR = () => {
+    if (!tripId || tripId.trim() === "") {
+      toast({
+        title: "Error",
+        description: "No se puede generar el código QR porque no hay un viaje activo.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsGeneratingQR(true)
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !tripId) {
     return (
       <div className="container flex items-center justify-center min-h-screen py-12">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Acceso de Conductor</CardTitle>
-            <CardDescription>Ingresa la clave única de tu vehículo para generar el código QR</CardDescription>
+            <CardDescription>Ingresa la placa del vehículo y el código de acceso</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="vehicleKey">Clave del vehículo</Label>
+                <Label htmlFor="plateNumber">Placa del vehículo</Label>
                 <Input
-                  id="vehicleKey"
-                  value={vehicleKey}
-                  onChange={(e) => setVehicleKey(e.target.value)}
-                  placeholder="Ingresa la clave única de tu vehículo"
+                  id="plateNumber"
+                  value={plateNumber}
+                  onChange={(e) => setPlateNumber(e.target.value)}
+                  placeholder="Ej: ABC-123"
                   required
                 />
               </div>
-              <Button type="submit" className="w-full">
-                Iniciar sesión
+              <div className="space-y-2">
+                <Label htmlFor="imeiLastDigits">Código de acceso</Label>
+                <Input
+                  id="imeiLastDigits"
+                  value={imeiLastDigits}
+                  onChange={(e) => setImeiLastDigits(e.target.value)}
+                  placeholder="Ej: 1234"
+                  maxLength={4}
+                  pattern="\d{4}"
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Verificando...
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="mr-2 h-4 w-4" />
+                    Verificar y acceder
+                  </>
+                )}
               </Button>
             </form>
           </CardContent>
@@ -92,27 +358,86 @@ export default function DriverPage() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Panel del Conductor</CardTitle>
-          <CardDescription>Genera un código QR para compartir la ubicación de tu vehículo</CardDescription>
+          <CardDescription>Código QR para compartir la ubicación de tu vehículo</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {vehicleDetails && (
+            <div className="p-4 bg-muted rounded-lg mb-4">
+              <h3 className="font-medium mb-2">Detalles del vehículo</h3>
+              <p className="text-sm">
+                <strong>Nombre:</strong> {vehicleDetails.name}
+              </p>
+              <p className="text-sm">
+                <strong>Placa:</strong> {vehicleDetails.device}
+              </p>
+              <p className="text-sm">
+                <strong>Modelo:</strong> {vehicleDetails.model || "No especificado"}
+              </p>
+            </div>
+          )}
+
           {isGeneratingQR ? (
             <div className="flex flex-col items-center space-y-4">
-              <QRCodeGenerator vehicleKey={localStorage.getItem("vehicleKey") || vehicleKey} />
+              {activeTrip && activeTrip.isActive ? (
+                <div className="p-4 bg-muted rounded-lg w-full mb-2">
+                  <h3 className="font-medium mb-1">Estado del QR</h3>
+                  {activeTrip.destination ? (
+                    <>
+                      <p className="text-sm">
+                        <strong>Destino:</strong> {activeTrip.destination}
+                      </p>
+                      <p className="text-sm">
+                        <strong>Iniciado:</strong> {new Date(activeTrip.createdAt).toLocaleString()}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm">QR activo esperando que un pasajero defina el destino.</p>
+                  )}
+                </div>
+              ) : (
+                <div className="p-4 bg-muted rounded-lg w-full mb-2">
+                  <p className="text-sm text-center">No hay QR activo. Actualizando...</p>
+                </div>
+              )}
+
+              <QRCodeGenerator vehicleKey={tripId} />
               <p className="text-sm text-muted-foreground text-center">
-                Este código QR contiene la clave única de tu vehículo. Los pasajeros pueden escanearlo para seguir tu
-                ubicación en tiempo real.
+                Comparte este código QR con los pasajeros para que puedan seguir tu ubicación. El código QR expirará
+                automáticamente al llegar al destino.
               </p>
-              <Button variant="outline" onClick={() => setIsGeneratingQR(false)}>
-                Ocultar código QR
-              </Button>
+              <div className="flex space-x-2 w-full">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setIsGeneratingQR(false)}
+                  disabled={isLoading}
+                >
+                  Ocultar código QR
+                </Button>
+              </div>
             </div>
           ) : (
-            <Button className="w-full" onClick={generateQR}>
-              Generar código QR
+            <Button className="w-full" onClick={generateQR} disabled={isLoading}>
+              Mostrar código QR
             </Button>
           )}
-          <Button variant="destructive" className="w-full" onClick={handleLogout}>
-            Cerrar sesión
+          <Button
+            variant="destructive"
+            className="w-full"
+            onClick={() => handleLogout(vehicleDetails?.imei || "")}
+            disabled={isLoading || !vehicleDetails?.imei}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Cerrando sesión...
+              </>
+            ) : (
+              <>
+                <ShieldCheck className="mr-2 h-4 w-4" />
+                Cerrar sesión
+              </>
+            )}
           </Button>
         </CardContent>
       </Card>
