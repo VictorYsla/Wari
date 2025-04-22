@@ -12,7 +12,11 @@ export default function useTripSocket(id: string, onTripStatusChange: (trip: any
   useEffect(() => {
     if (globalSocket) return;
 
-    const socket = io(`${baseURL}`);
+    const socket = io(`${baseURL}`,{
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
     globalSocket = socket;
 
     socket.on('connect', () => {
