@@ -175,7 +175,7 @@ export default function DriverPage() {
           })
         } catch (error) {
           toast({
-            title: "Error al crear viaje",
+            title: "Error al crear el viaje",
             description: error instanceof Error ? error.message : "No se pudo crear el viaje. Intente nuevamente.",
             variant: "destructive",
           })
