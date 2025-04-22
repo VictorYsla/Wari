@@ -6,12 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { QRCodeScanner } from "@/components/qr-code-scanner"
 import { VehicleTracker } from "@/components/vehicle-tracker"
 import { useToast } from "@/hooks/use-toast"
-import { CheckCircle2, Share2, Flag, AlertCircle } from "lucide-react"
+import { CheckCircle2, Share2, Flag, AlertCircle, Loader2, Square, ShieldClose, ShieldCheck } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { DestinationSelector, type Destination } from "@/components/destination-selector"
 import useTripSocket from "@/hooks/useTripSocket"
 import type { GetTripResponse, Trip, UpdateTripResponse } from "../types/types"
 import { useSearchParams } from "next/navigation"
+import { useSafeTimeout } from "@/hooks/useSafeTimeOut"
 
 interface TripData {
   imei: string
@@ -41,10 +42,13 @@ export default function PassengerPage() {
   const [cancelledTrip, setCancelledTrip] = useState(false)
   const [countdown, setCountdown] = useState(600) // 10 minutos en segundos
   const [isLoading, setIsLoading] = useState(true)
+  const [isButtonLoading, setIsButtonLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [tripStatus, setTripStatus] = useState<TripStatus | null>(null)
 
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const isStoppedTracking = useRef(false)
+  const { setSafeTimeout, clearSafeTimeout, timeoutRef} = useSafeTimeout();
   const { toast } = useToast()
   const searchParams = useSearchParams()
   const tripIdParam = searchParams.get("tripId")
@@ -108,12 +112,8 @@ export default function PassengerPage() {
     })
   }
 
-  useTripSocket((trip: Trip) => {
+  useTripSocket(scannedTripId,(trip: Trip) => {
     // Verificar que el viaje recibido corresponda al viaje actual que se está siguiendo
-    if (!tripData || trip.id !== tripData.tripId) {
-      console.log("Evento de socket recibido para un viaje diferente, ignorando")
-      return
-    }
 
     console.log("Evento de socket recibido para el viaje actual:", trip)
 
@@ -134,12 +134,9 @@ export default function PassengerPage() {
     }
 
     // Viaje cancelado (no activo y no completado)
-    if (!trip.is_active && !trip.is_completed) {
-      setTripStatus({
-        type: TripStatusType.CANCELLED,
-        message: "Viaje cancelado",
-        description: "El conductor ha cancelado el viaje.",
-      })
+    if (!trip.is_active && !trip.is_completed && !isStoppedTracking.current) {
+      clearSafeTimeout(); 
+
       toast({
         title: "Viaje cancelado",
         description: "El conductor ha cancelado el viaje. El compartir ubicación se detendrá en 10 minutos.",
@@ -149,28 +146,32 @@ export default function PassengerPage() {
       setCancelledTrip(true)
       setCountdown(600) // reiniciar cuenta por si acaso
 
-      // Inicia temporizador de 10 minutos (600000 ms)
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
+      
 
-      timeoutRef.current = setTimeout(() => {
-        setTripEnded(true)
-        setIsTracking(false)
-      }, 600000)
+      setSafeTimeout(() => {
+        setTripEnded(true);
+        setIsTracking(false);
+        setTripStatus({
+          type: TripStatusType.CANCELLED,
+          message: "Viaje cancelado",
+          description: "El conductor ha cancelado el viaje.",
+        });
+      }, 6000);
     }
   })
 
   const cancelTimeout = () => {
+    isStoppedTracking.current = true
     setCountdown(600)
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-      timeoutRef.current = null
-      console.log("Timeout cancelado")
-    }
+    clearSafeTimeout();
+    clearInterval(intervalRef.current!)
+    intervalRef.current = null
+
   }
 
   const startTracking = async () => {
+    isStoppedTracking.current = false
+    setIsButtonLoading(true)
     try {
       if (!destination) {
         setTripStatus({
@@ -267,9 +268,13 @@ export default function PassengerPage() {
         tripId: updateTripResponseType.data.id,
       })
 
-      setIsTracking(true)
-      setError(null)
-      setTripStatus(null)
+      // setIsTracking(true)
+      // setError(null)
+      // setTripStatus(null)
+      // setIsButtonLoading(false)
+      const url = `${window.location.origin}/passenger?tripId=${updateTripResponseType.data.id}`;
+      window.location.href = url;
+
 
       toast({
         title: "Seguimiento iniciado",
@@ -277,6 +282,7 @@ export default function PassengerPage() {
       })
     } catch (error: any) {
       console.error("Error starting tracking:", error)
+      setIsButtonLoading(false)
       setTripStatus({
         type: TripStatusType.ERROR,
         message: "Error al iniciar seguimiento",
@@ -292,6 +298,7 @@ export default function PassengerPage() {
 
   const stopTracking = async () => {
     try {
+      setIsButtonLoading(true)
       cancelTimeout()
 
       if (!tripData) {
@@ -324,7 +331,18 @@ export default function PassengerPage() {
         // Continuamos con el proceso aunque falle
       }
 
-      resetTrackingState()
+      setTripEnded(true)
+      setIsTracking(false)
+      setCancelledTrip(true)
+      setTripStatus({
+        type: TripStatusType.CANCELLED,
+        message: "Seguimiento cancelado",
+        description: "Has dejado de seguir la ubicación del vehículo.",
+      })
+      setIsButtonLoading(false)
+
+      console.log("intervals:",{interval:intervalRef.current,timeout:timeoutRef.current})
+
 
       toast({
         title: "Seguimiento finalizado",
@@ -335,6 +353,8 @@ export default function PassengerPage() {
 
       // Aún así, reseteamos el estado para que el usuario pueda volver a empezar
       resetTrackingState()
+      setIsButtonLoading(false)
+
 
       toast({
         title: "Error",
@@ -346,6 +366,8 @@ export default function PassengerPage() {
 
   // Función auxiliar para resetear todos los estados relacionados con el seguimiento
   const resetTrackingState = () => {
+
+    isStoppedTracking.current = false
     setIsTracking(false)
     setTripData(null)
     setTripEnded(false)
@@ -354,6 +376,11 @@ export default function PassengerPage() {
     setDestination(null)
     setError(null)
     setTripStatus(null)
+  }
+
+  const goToNewTrip = () => {
+    const url = `${window.location.origin}/passenger`;
+    window.location.href = url;
   }
 
   const resetScan = () => {
@@ -383,19 +410,24 @@ export default function PassengerPage() {
   useEffect(() => {
     if (!cancelledTrip) return
 
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
-          clearInterval(interval)
+          clearInterval(intervalRef.current!)
+          intervalRef.current = null
           setTripEnded(true)
           setIsTracking(false)
+          setCancelledTrip(true)
           return 0
         }
         return prev - 1
       })
     }, 1000)
 
-    return () => clearInterval(interval)
+    return () => {
+      clearInterval(intervalRef.current!),        
+      intervalRef.current = null
+}
   }, [cancelledTrip])
 
   const getTripData = async () => {
@@ -537,7 +569,7 @@ export default function PassengerPage() {
                 {tripStatus.description}
               </AlertDescription>
             </Alert>
-            <Button className="w-full" onClick={resetTrackingState}>
+            <Button className="w-full" onClick={goToNewTrip}>
               Volver al inicio
             </Button>
           </CardContent>
@@ -561,7 +593,7 @@ export default function PassengerPage() {
               <AlertTitle className="text-red-800">Error</AlertTitle>
               <AlertDescription className="text-red-700">{tripStatus.description}</AlertDescription>
             </Alert>
-            <Button className="w-full" onClick={resetTrackingState}>
+            <Button className="w-full" onClick={goToNewTrip}>
               Volver al inicio
             </Button>
           </CardContent>
@@ -596,7 +628,7 @@ export default function PassengerPage() {
                   : `El vehículo ha llegado a ${destination?.address || "su destino"}. El seguimiento ha finalizado.`}
               </AlertDescription>
             </Alert>
-            <Button className="w-full" onClick={resetTrackingState}>
+            <Button className="w-full" onClick={goToNewTrip}>
               Volver al inicio
             </Button>
           </CardContent>
@@ -642,8 +674,18 @@ export default function PassengerPage() {
               <Share2 className="w-4 h-4 text-black" />
               Compartir seguimiento
             </Button>
-            <Button variant="destructive" className="w-full" onClick={stopTracking}>
-              Detener seguimiento
+            <Button variant="destructive" className="w-full" onClick={stopTracking} disabled={isLoading}>
+            {isButtonLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Deteniendo seguimiento...
+              </>
+            ) : (
+              <>
+                <ShieldClose className="mr-2 h-4 w-4" />  
+                Detener seguimiento
+              </>
+            )}
             </Button>
           </CardContent>
         </Card>
@@ -680,7 +722,17 @@ export default function PassengerPage() {
 
                 <div className="flex space-x-2">
                   <Button className="flex-1" onClick={startTracking} disabled={!destination}>
-                    Iniciar seguimiento
+                  {isButtonLoading ? (
+              <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Iniciando...
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck className="mr-2 h-4 w-4" />  
+                      Iniciar seguimiento
+                    </>
+                  )}
                   </Button>
                   <Button variant="outline" onClick={resetScan}>
                     Volver a escanear

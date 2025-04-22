@@ -1,36 +1,52 @@
-import { useEffect } from 'react';
-import { io } from 'socket.io-client';
+import { useEffect, useRef } from 'react';
+import { io, Socket } from 'socket.io-client';
 import { useToast } from './use-toast';
 import { baseURL } from '@/app/api/helpers';
 
-export default function useTripSocket(onTripStatusChange: (trip: any) => void) {
+let globalSocket: Socket | null = null;
 
-  const { toast } = useToast()
+export default function useTripSocket(id: string, onTripStatusChange: (trip: any) => void) {
+  const { toast } = useToast();
+  const previousRoomRef = useRef<string | null>(null);
 
   useEffect(() => {
+    if (globalSocket) return;
 
-    const socket = io(`${baseURL}`); // El puerto donde corre tu backend Nest
+    const socket = io(`${baseURL}`);
+    globalSocket = socket;
 
     socket.on('connect', () => {
       console.log('📡 Conectado al socket');
-    //   toast({
-    //     title: "Conectado al socket",
-    //     description: `Conectado al socket`,
-    //   })
-      
     });
 
     socket.on('trip-status-change', (trip) => {
       console.log('🚨 is_active cambiado:', trip);
-      toast({
-        title: "is_active cambiado",
-        description: `trip`,
-      })
-      onTripStatusChange(trip); // Callback para que actualices UI/estado
+      onTripStatusChange(trip);
     });
-
-    return () => {
-      socket.disconnect();
-    };
   }, [onTripStatusChange]);
+
+  useEffect(() => {
+    if (!id || !globalSocket) return;
+
+    // Salir de la sala anterior si es diferente
+    if (previousRoomRef.current && previousRoomRef.current !== id) {
+      globalSocket.emit('leave-trip-room', { id: previousRoomRef.current });
+      console.log(`🚪 Saliendo de sala trip-${previousRoomRef.current}`);
+    }
+
+    // Unirse a la nueva sala
+    globalSocket.emit('join-trip-room', { id });
+    console.log(`✅ Unido a sala trip-${id}`);
+    previousRoomRef.current = id;
+  }, [id]);
+
+  function disconnectTripSocket() {
+    if (globalSocket) {
+      globalSocket.disconnect();
+      globalSocket = null;
+      console.log("❌ Socket desconectado manualmente");
+    }
+  }
+
+  return { disconnectTripSocket };
 }

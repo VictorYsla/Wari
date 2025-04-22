@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { QRCodeGenerator } from "@/components/qr-code-generator"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2, ShieldCheck } from "lucide-react"
-import type { CreateTripResponse, Trip } from "../types/types"
+import type { CreateTripResponse, GetTripResponse, Trip } from "../types/types"
 import useTripSocket from "@/hooks/useTripSocket"
 
 // Interfaces para los tipos de datos
@@ -39,7 +39,36 @@ export default function DriverPage() {
   const [tripId, setTripId] = useState("")
   const [vehicleDetails, setVehicleDetails] = useState<DeviceObject | null>(null)
   const [activeTrip, setActiveTrip] = useState<Trip | null>(null)
+  const [isRechargeLoading, setIsRechargeLoading] = useState(true)
+
+  const isLogged = useRef(false)
   const { toast } = useToast()
+
+  useTripSocket(tripId,(trip: Trip) => {
+    console.log("Evento de socket recibido:", trip)
+
+    setActiveTrip({...trip})
+    localStorage.setItem("tripId", trip.id) // actualiza localStorage
+
+
+    // Crear nuevo viaje con manejo de errores
+    if(!trip.is_active && isLogged.current){
+
+      toast({
+        title: "QR expirado",
+        description: "Se actualizará a un nuevo QR",
+      })
+
+      createTrip(trip.imei).catch((error) => {
+        console.error("Error al crear nuevo viaje desde evento de socket:", error)
+        toast({
+          title: "Error al actualizar QR",
+          description: "No se pudo generar un nuevo código QR. Intente nuevamente.",
+          variant: "destructive",
+        })
+      })
+    }
+  })
 
   // Mejorar la función findVehicleByPlate para validar correctamente los datos
   const findVehicleByPlate = async (plate: string, imeiLastDigits: string) => {
@@ -88,7 +117,6 @@ export default function DriverPage() {
 
       // Almacenar detalles del vehículo
       setVehicleDetails(data.vehicle)
-      localStorage.setItem("vehicleDetails", JSON.stringify(data.vehicle))
       return data.vehicle
     } catch (error) {
       console.error("Error searching for vehicle:", error)
@@ -131,11 +159,15 @@ export default function DriverPage() {
 
       if (vehicle && vehicle.imei) {
         localStorage.setItem("driverAuthenticated", "true")
+        localStorage.setItem("plate", plateNumber.trim())
+
 
         try {
           await createTrip(vehicle.imei)
 
           setIsAuthenticated(true)
+          isLogged.current = true
+
 
           toast({
             title: "Verificación exitosa",
@@ -189,7 +221,14 @@ export default function DriverPage() {
         throw new Error("Respuesta inválida del servidor al crear viaje")
       }
 
+      const newTrip = typedRegisterTripResponse.data
+
+
       setTripId(typedRegisterTripResponse.data.id)
+      setActiveTrip(newTrip)
+
+      // Guardar en localStorage
+      localStorage.setItem("tripId", newTrip.id)
 
     } catch (error) {
       console.error("Error en createTrip:", error)
@@ -197,32 +236,11 @@ export default function DriverPage() {
     }
   }
 
-  useTripSocket((trip: Trip) => {
-    console.log("Evento de socket recibido:", trip)
 
-    setActiveTrip(trip)
-
-
-    toast({
-      title: "QR expirado",
-      description: "Se actualizará a un nuevo QR",
-    })
-
-    // Crear nuevo viaje con manejo de errores
-    if(!trip.is_active){
-      createTrip(trip.imei).catch((error) => {
-        console.error("Error al crear nuevo viaje desde evento de socket:", error)
-        toast({
-          title: "Error al actualizar QR",
-          description: "No se pudo generar un nuevo código QR. Intente nuevamente.",
-          variant: "destructive",
-        })
-      })
-    }
-  })
 
   // Mejorar handleLogout para manejar errores y validar datos
   const handleLogout = async (imei: string) => {
+    isLogged.current = false
     setIsLoading(true)
 
     try {
@@ -262,7 +280,7 @@ export default function DriverPage() {
 
       // Limpiar estados y almacenamiento local
       localStorage.removeItem("driverAuthenticated")
-      localStorage.removeItem("vehicleDetails")
+      localStorage.removeItem("tripId")
       setIsAuthenticated(false)
       setIsGeneratingQR(false)
       setVehicleDetails(null)
@@ -300,6 +318,81 @@ export default function DriverPage() {
 
     setIsGeneratingQR(true)
   }
+
+const getTrip = async (tripId:string)=>{
+  const response = await fetch(`/api/get-trip?id=${tripId}`)
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.message || `Error al obtener el viaje: ${response.status}`)
+  }
+
+  const tripResponse = (await response.json()) as GetTripResponse
+
+  return tripResponse.data
+}
+
+useEffect(() => {
+  const loadTripFromStorage = async () => {
+    setIsRechargeLoading(true) // <- Mostrar indicador de carga
+    const tripId = localStorage.getItem("tripId")
+    const isDriverAuthenticated = localStorage.getItem("driverAuthenticated")
+    const plate = localStorage.getItem("plate")
+    
+
+    if (tripId && isDriverAuthenticated ) {
+      try {
+        const tripData = await getTrip(tripId)
+        await findVehicleByPlate(plate ||'', tripData.imei.slice(-4)
+      )
+
+        setTripId(tripId)
+        setActiveTrip(tripData)
+        setIsAuthenticated(true)
+        isLogged.current = true
+      } catch (error) {
+        localStorage.removeItem('tripId')
+        localStorage.removeItem('driverAuthenticated')
+        localStorage.removeItem("plate")
+        setIsAuthenticated(false)
+        setIsGeneratingQR(false)
+        setVehicleDetails(null)
+        setTripId("")
+        setPlateNumber("")
+        setImeiLastDigits("")
+        setActiveTrip(null)
+        console.error("Error al cargar datos guardados:", error)
+      }
+    }
+
+    setIsRechargeLoading(false) // <- Ocultar indicador
+  }
+
+  loadTripFromStorage()
+}, [])
+
+
+if (isRechargeLoading) {
+  return (
+    <div className="container flex flex-col items-center justify-center min-h-screen py-12 space-y-6">
+      <Card className="w-full max-w-md shadow-lg rounded-lg">
+        <CardHeader>
+          <CardTitle>Cargando información del viaje...</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex justify-center">
+            <div className="w-12 h-12 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
+          </div>
+          <CardDescription className="text-center text-gray-500">
+            Estamos obteniendo todos los detalles para ti. Esto puede tardar unos momentos.
+          </CardDescription>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+
 
   if (!isAuthenticated || !tripId) {
     return (
@@ -396,7 +489,7 @@ export default function DriverPage() {
                 </div>
               ) : (
                 <div className="p-4 bg-muted rounded-lg w-full mb-2">
-                  <p className="text-sm text-center">No hay QR activo. Actualizando...</p>
+                  <p className="text-sm text-center">QR disponible. Actualizando...</p>
                 </div>
               )}
 

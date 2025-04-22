@@ -17,6 +17,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="logo.jpeg" sizes="any" />
         <script
           src={`https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places`}
           async
