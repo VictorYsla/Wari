@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { QRCodeScanner } from "@/components/qr-code-scanner"
 import { VehicleTracker } from "@/components/vehicle-tracker"
 import { useToast } from "@/hooks/use-toast"
-import { CheckCircle2, Share2, Flag, AlertCircle, Loader2, Square, ShieldClose, ShieldCheck } from "lucide-react"
+import { CheckCircle2, Share2, Flag, AlertCircle, Loader2, ShieldClose, ShieldCheck } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { DestinationSelector, type Destination } from "@/components/destination-selector"
 import useTripSocket from "@/hooks/useTripSocket"
@@ -52,6 +52,54 @@ export default function PassengerPage() {
   const { toast } = useToast()
   const searchParams = useSearchParams()
   const tripIdParam = searchParams.get("tripId")
+
+ const {isConnected} = useTripSocket(scannedTripId,(trip: Trip) => {
+    // Verificar que el viaje recibido corresponda al viaje actual que se está siguiendo
+
+    console.log("Evento de socket recibido para el viaje actual:", trip)
+
+    // Viaje finalizado (completado)
+    if (trip.is_completed) {
+      setTripEnded(true)
+      setIsTracking(false)
+      setTripStatus({
+        type: TripStatusType.COMPLETED,
+        message: "Viaje finalizado",
+        description: "El viaje ha sido completado exitosamente.",
+      })
+      toast({
+        title: "Viaje finalizado",
+        description: "El viaje ha sido completado exitosamente.",
+      })
+      return
+    }
+
+    // Viaje cancelado (no activo y no completado)
+    if (!trip.is_active && !trip.is_completed && !isStoppedTracking.current) {
+      clearSafeTimeout(); 
+
+      toast({
+        title: "Viaje cancelado",
+        description: "El conductor ha cancelado el viaje. El compartir ubicación se detendrá en 10 minutos.",
+        variant: "destructive",
+      })
+
+      setCancelledTrip(true)
+      setCountdown(600) // reiniciar cuenta por si acaso
+
+      
+
+      setSafeTimeout(() => {
+        setTripEnded(true);
+        setIsTracking(false);
+        setTripStatus({
+          type: TripStatusType.CANCELLED,
+          message: "Viaje cancelado",
+          description: "El conductor ha cancelado el viaje.",
+        });
+      }, 600000);
+    }
+  })
 
   const handleQRScanned = (data: string) => {
     try {
@@ -111,54 +159,6 @@ export default function PassengerPage() {
       description: selectedDestination.address,
     })
   }
-
-  useTripSocket(scannedTripId,(trip: Trip) => {
-    // Verificar que el viaje recibido corresponda al viaje actual que se está siguiendo
-
-    console.log("Evento de socket recibido para el viaje actual:", trip)
-
-    // Viaje finalizado (completado)
-    if (trip.is_completed) {
-      setTripEnded(true)
-      setIsTracking(false)
-      setTripStatus({
-        type: TripStatusType.COMPLETED,
-        message: "Viaje finalizado",
-        description: "El viaje ha sido completado exitosamente.",
-      })
-      toast({
-        title: "Viaje finalizado",
-        description: "El viaje ha sido completado exitosamente.",
-      })
-      return
-    }
-
-    // Viaje cancelado (no activo y no completado)
-    if (!trip.is_active && !trip.is_completed && !isStoppedTracking.current) {
-      clearSafeTimeout(); 
-
-      toast({
-        title: "Viaje cancelado",
-        description: "El conductor ha cancelado el viaje. El compartir ubicación se detendrá en 10 minutos.",
-        variant: "destructive",
-      })
-
-      setCancelledTrip(true)
-      setCountdown(600) // reiniciar cuenta por si acaso
-
-      
-
-      setSafeTimeout(() => {
-        setTripEnded(true);
-        setIsTracking(false);
-        setTripStatus({
-          type: TripStatusType.CANCELLED,
-          message: "Viaje cancelado",
-          description: "El conductor ha cancelado el viaje.",
-        });
-      }, 600000);
-    }
-  })
 
   const cancelTimeout = () => {
     isStoppedTracking.current = true
@@ -674,7 +674,7 @@ export default function PassengerPage() {
               <Share2 className="w-4 h-4 text-black" />
               Compartir seguimiento
             </Button>
-            <Button variant="destructive" className="w-full" onClick={stopTracking} disabled={isLoading}>
+            <Button variant="destructive" className="w-full" onClick={stopTracking} disabled={isLoading || !isConnected}>
             {isButtonLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

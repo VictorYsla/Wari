@@ -44,7 +44,7 @@ export default function DriverPage() {
   const isLogged = useRef(false)
   const { toast } = useToast()
 
-  useTripSocket(tripId,(trip: Trip) => {
+  const {isConnected} = useTripSocket(tripId,(trip: Trip) => {
     console.log("Evento de socket recibido:", trip)
 
     setActiveTrip({...trip})
@@ -518,7 +518,7 @@ if (isRechargeLoading) {
             variant="destructive"
             className="w-full"
             onClick={() => handleLogout(vehicleDetails?.imei || "")}
-            disabled={isLoading || !vehicleDetails?.imei}
+            disabled={isLoading || !vehicleDetails?.imei || !isConnected}
           >
             {isLoading ? (
               <>

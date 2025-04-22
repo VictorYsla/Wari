@@ -1,6 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { useToast } from './use-toast';
 import { baseURL } from '@/app/api/helpers';
 
 let globalSocket: Socket | null = null;
@@ -9,10 +8,11 @@ export default function useTripSocket(
   id: string,
   onTripStatusChange: (trip: any) => void
 ) {
-  const { toast } = useToast();
   const previousRoomRef = useRef<string | null>(null);
 
-  let hasDisconnectedOnce = false;
+  const [hasDisconnectedOnce, setHasDisconnectedOnce] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+
 
 
   useEffect(() => {
@@ -28,6 +28,7 @@ export default function useTripSocket(
 
     socket.on('connect', () => {
       console.log('📡 Conectado al socket');
+      setIsConnected(true);
     
       if (hasDisconnectedOnce && previousRoomRef.current) {
         socket.emit('join-trip-room', { id: previousRoomRef.current });
@@ -36,7 +37,8 @@ export default function useTripSocket(
     });
 
     socket.on('disconnect', (reason) => {
-      hasDisconnectedOnce = true;
+      setIsConnected(false);
+      setHasDisconnectedOnce(true);
       console.warn('⚠️ Socket desconectado:', reason);
     });
 
@@ -75,5 +77,5 @@ export default function useTripSocket(
     }
   }
 
-  return { disconnectTripSocket };
+  return { disconnectTripSocket, isConnected };
 }
