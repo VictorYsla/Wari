@@ -12,6 +12,9 @@ export default function useTripSocket(
   const { toast } = useToast();
   const previousRoomRef = useRef<string | null>(null);
 
+  let hasDisconnectedOnce = false;
+
+
   useEffect(() => {
     if (globalSocket) return;
 
@@ -25,10 +28,16 @@ export default function useTripSocket(
 
     socket.on('connect', () => {
       console.log('📡 Conectado al socket');
+    
+      if (hasDisconnectedOnce && previousRoomRef.current) {
+        socket.emit('join-trip-room', { id: previousRoomRef.current });
+        console.log(`♻️ Reunido a sala trip-${previousRoomRef.current} después de desconexión completa`);
+      }
     });
 
     socket.on('disconnect', (reason) => {
-      console.warn(`⚠️ Socket desconectado: ${reason}`);
+      hasDisconnectedOnce = true;
+      console.warn('⚠️ Socket desconectado:', reason);
     });
 
     socket.on('reconnect', () => {
