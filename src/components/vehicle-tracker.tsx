@@ -140,10 +140,11 @@ export function VehicleTracker({ vehicleKey, destination }: VehicleTrackerProps)
         position: vehiclePosition,
         map: mapRef.current,
         icon: {
-          path: window.google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-          scale: 6,
-          fillColor: "#4F46E5",
-          fillOpacity: 1,
+          path: window.google.maps.SymbolPath.CIRCLE,
+
+          scale: 10,
+          fillColor: "#10B981",
+          fillOpacity: 0.7,
           strokeWeight: 2,
           strokeColor: "#FFFFFF",
           rotation: 0, // We could update this based on heading if available
@@ -163,14 +164,7 @@ export function VehicleTracker({ vehicleKey, destination }: VehicleTrackerProps)
         const destinationMarker = new window.google.maps.Marker({
           position: destinationPosition,
           map: mapRef.current,
-          icon: {
-            path: window.google.maps.SymbolPath.CIRCLE,
-            scale: 10,
-            fillColor: "#10B981",
-            fillOpacity: 0.7,
-            strokeWeight: 2,
-            strokeColor: "#FFFFFF",
-          },
+          
           title: "Destino",
         })
         destinationMarkerRef.current = destinationMarker
