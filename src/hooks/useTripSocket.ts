@@ -17,14 +17,18 @@ export default function useTripSocket(
 
     const socket = io(`${baseURL}`, {
       reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
+      reconnectionAttempts: Infinity, // reconectar infinitamente
+      reconnectionDelay: 1000, // intentar cada segundo
     });
 
     globalSocket = socket;
 
     socket.on('connect', () => {
       console.log('📡 Conectado al socket');
+    });
+
+    socket.on('disconnect', (reason) => {
+      console.warn(`⚠️ Socket desconectado: ${reason}`);
     });
 
     socket.on('reconnect', () => {
@@ -44,13 +48,11 @@ export default function useTripSocket(
   useEffect(() => {
     if (!id || !globalSocket) return;
 
-    // Salir de la sala anterior si es diferente
     if (previousRoomRef.current && previousRoomRef.current !== id) {
       globalSocket.emit('leave-trip-room', { id: previousRoomRef.current });
       console.log(`🚪 Saliendo de sala trip-${previousRoomRef.current}`);
     }
 
-    // Unirse a la nueva sala
     globalSocket.emit('join-trip-room', { id });
     console.log(`✅ Unido a sala trip-${id}`);
     previousRoomRef.current = id;
