@@ -156,7 +156,7 @@ export default function PassengerPage() {
           message: "Viaje cancelado",
           description: "El conductor ha cancelado el viaje.",
         });
-      }, 6000);
+      }, 600000);
     }
   })
 
