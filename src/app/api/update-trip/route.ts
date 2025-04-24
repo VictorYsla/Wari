@@ -28,7 +28,6 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ success: true, data })
   } catch (error: any) {
-    console.error('Error updating trip:', error)
     return NextResponse.json({ success: false, message: 'Failed to update trip' }, { status: 500 })
   }
 }

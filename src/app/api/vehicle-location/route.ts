@@ -42,7 +42,6 @@ export async function GET(request: Request) {
       )
     }
   } catch (error) {
-    console.error("Error fetching vehicle location:", error)
 
     return NextResponse.json({
       success: true,

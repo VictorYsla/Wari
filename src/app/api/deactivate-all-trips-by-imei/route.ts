@@ -20,7 +20,6 @@ export async function PATCH(request: Request) {
     const data = await res.json()
     return NextResponse.json({ success: true, data })
   } catch (error) {
-    console.error('Error while calling Nest backend:', error)
     return NextResponse.json({ success: false, message: 'Failed to deactivate trips' }, { status: 500 })
   }
 }

@@ -29,7 +29,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, data })
   } catch (error: any) {
-    console.error("Error in /api/stop-trip-monitoring:", error)
     return NextResponse.json(
       { success: false, message: error.message },
       { status: 500 }

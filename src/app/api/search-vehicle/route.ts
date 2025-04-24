@@ -47,7 +47,6 @@ export async function GET(request: Request) {
     // Call the API to get all users and their vehicles
     const apiUrl = `${hawkBaseURL}${hawkInitialGetAllParams}${hawkEndGetAllParams}`
     
-    console.log("apiUrl:",apiUrl)
 
     const response = await fetch(apiUrl)
 
@@ -87,7 +86,6 @@ export async function GET(request: Request) {
     }
     
   } catch (error) {
-    console.error("Error searching for vehicle:", error)
 
     // For demo purposes, return mock data if the API call fails
     // In production, you would handle this differently

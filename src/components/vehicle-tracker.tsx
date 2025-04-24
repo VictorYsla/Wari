@@ -90,7 +90,7 @@ export function VehicleTracker({ vehicleKey, destination }: VehicleTrackerProps)
         setError(data.message || "No se pudo obtener la ubicación del vehículo")
       }
     } catch (err) {
-      console.error("Error fetching vehicle location:", err)
+      
       setError("Error al obtener la ubicación del vehículo")
       toast({
         title: "Error",

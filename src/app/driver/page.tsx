@@ -45,7 +45,6 @@ export default function DriverPage() {
   const { toast } = useToast()
 
   const {isConnected} = useTripSocket(tripId,(trip: Trip) => {
-    console.log("Evento de socket recibido:", trip)
 
     setActiveTrip({...trip})
     localStorage.setItem("tripId", trip.id) // actualiza localStorage
@@ -60,7 +59,6 @@ export default function DriverPage() {
       })
 
       createTrip(trip.imei).catch((error) => {
-        console.error("Error al crear nuevo viaje desde evento de socket:", error)
         toast({
           title: "Error al actualizar QR",
           description: "No se pudo generar un nuevo código QR. Intente nuevamente.",
@@ -76,7 +74,6 @@ export default function DriverPage() {
       // Call API to search for vehicle by plate number and verify IMEI
       const response = await fetch(`/api/search-vehicle?plate=${plate}`)
 
-      console.log("response:",response)
 
       if (!response.ok) {
         throw new Error(`Error del servidor: ${response.status}`)
@@ -119,7 +116,6 @@ export default function DriverPage() {
       setVehicleDetails(data.vehicle)
       return data.vehicle
     } catch (error) {
-      console.error("Error searching for vehicle:", error)
       toast({
         title: "Error",
         description:
@@ -182,7 +178,6 @@ export default function DriverPage() {
         }
       }
     } catch (error) {
-      console.error("Error en el proceso de login:", error)
       toast({
         title: "Error de autenticación",
         description: "Ocurrió un error durante el proceso de autenticación.",
@@ -215,7 +210,6 @@ export default function DriverPage() {
 
       const typedRegisterTripResponse = (await response.json()) as CreateTripResponse
       
-      console.log("typedRegisterTripResponse:",typedRegisterTripResponse)
 
       if (!typedRegisterTripResponse.success || !typedRegisterTripResponse.data || !typedRegisterTripResponse.data.id) {
         throw new Error("Respuesta inválida del servidor al crear viaje")
@@ -231,7 +225,6 @@ export default function DriverPage() {
       localStorage.setItem("tripId", newTrip.id)
 
     } catch (error) {
-      console.error("Error en createTrip:", error)
       throw error // Re-lanzar para manejo en el nivel superior
     }
   }
@@ -254,7 +247,6 @@ export default function DriverPage() {
       })
 
       if (!stopMonitoringRes.ok) {
-        console.warn("Error al detener monitoreo:", await stopMonitoringRes.text())
         // Continuamos a pesar del error
       }
 
@@ -269,12 +261,10 @@ export default function DriverPage() {
         })
 
         if (!updateTripRes.ok) {
-          console.warn("Error al actualizar viaje:", await updateTripRes.text())
           // Continuamos a pesar del error
         } else {
           // Solo intentamos procesar la respuesta JSON si la respuesta fue exitosa
           const updateData = await updateTripRes.json().catch(() => ({}))
-          console.log("Respuesta de cierre de viaje:", updateData)
         }
       }
 
@@ -294,7 +284,6 @@ export default function DriverPage() {
         description: "Has cerrado sesión correctamente.",
       })
     } catch (error) {
-      console.error("Error al cerrar sesión:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Ocurrió un error al cerrar sesión.",
@@ -361,7 +350,6 @@ useEffect(() => {
         setPlateNumber("")
         setImeiLastDigits("")
         setActiveTrip(null)
-        console.error("Error al cargar datos guardados:", error)
       }
     }
 

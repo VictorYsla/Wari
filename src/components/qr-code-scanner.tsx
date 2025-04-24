@@ -22,7 +22,7 @@ export function QRCodeScanner({ onScan }: QRCodeScannerProps) {
     // Cleanup on unmount
     return () => {
       if (scanner && scanner.isScanning) {
-        scanner.stop().catch((error) => console.error("Error stopping scanner:", error))
+        scanner.stop().catch((error) => {})
       }
     }
   }, [])
@@ -39,13 +39,12 @@ export function QRCodeScanner({ onScan }: QRCodeScannerProps) {
         config,
         (decodedText) => {
           // Success callback
-          scannerInstance.stop().catch((error) => console.error("Error stopping scanner:", error))
+          scannerInstance.stop().catch((error) => {})
           setIsScanning(false)
           onScan(decodedText)
         },
         (errorMessage) => {
           // Error callback
-          console.log(errorMessage)
         },
       )
       .catch((err) => {
@@ -55,13 +54,12 @@ export function QRCodeScanner({ onScan }: QRCodeScannerProps) {
           variant: "destructive",
         })
         setIsScanning(false)
-        console.error("Error starting scanner:", err)
       })
   }
 
   const stopScanner = () => {
     if (scannerInstance && scannerInstance.isScanning) {
-      scannerInstance.stop().catch((error) => console.error("Error stopping scanner:", error))
+      scannerInstance.stop().catch((error) => {})
       setIsScanning(false)
     }
   }

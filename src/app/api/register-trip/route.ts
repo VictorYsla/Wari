@@ -5,7 +5,6 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    console.log("BODY:",body)
 
     const { imei } = body
 
@@ -16,7 +15,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log("imeiimeiimei:",imei)
 
     const response = await fetch(`${baseURL}/trip/create-trip`, {
       method: "POST",
@@ -37,7 +35,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, data })
   } catch (error: any) {
-    console.error("Error in /api/create-trip:", error)
     return NextResponse.json(
       { success: false, message: error.message },
       { status: 500 }

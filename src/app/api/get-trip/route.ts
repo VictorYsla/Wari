@@ -28,7 +28,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ success: true, data })
   } catch (error: any) {
-    console.error('Error fetching trip by ID:', error)
     return NextResponse.json(
       { success: false, message: 'Failed to fetch trip' },
       { status: 500 }

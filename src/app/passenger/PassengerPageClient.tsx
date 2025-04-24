@@ -56,7 +56,6 @@ export default function PassengerPage() {
  const {isConnected} = useTripSocket(scannedTripId,(trip: Trip) => {
     // Verificar que el viaje recibido corresponda al viaje actual que se está siguiendo
 
-    console.log("Evento de socket recibido para el viaje actual:", trip)
 
     // Viaje finalizado (completado)
     if (trip.is_completed) {
@@ -106,7 +105,6 @@ export default function PassengerPage() {
       // Parse the QR data - could be just the IMEI or a JSON object
       let tripId = data
 
-      console.log("QR data escaneada:", data)
 
       try {
         // Try to parse as JSON first
@@ -114,11 +112,9 @@ export default function PassengerPage() {
 
         if (parsedData.tripId) {
           tripId = parsedData.tripId
-          console.log("tripId extraído del JSON:", tripId)
         }
       } catch (e) {
         // If parsing fails, assume the data is just the trip ID
-        console.log("QR contiene un ID simple")
       }
 
       // Validar que el tripId no esté vacío
@@ -135,7 +131,6 @@ export default function PassengerPage() {
         description: "Ahora selecciona el destino para iniciar el seguimiento.",
       })
     } catch (error: any) {
-      console.error("Error parsing QR data:", error)
       setTripStatus({
         type: TripStatusType.ERROR,
         message: "QR inválido",
@@ -221,7 +216,6 @@ export default function PassengerPage() {
 
       const updateTripResponseType = (await updateResponse.json()) as UpdateTripResponse
 
-      console.log("Respuesta de actualización del viaje:", updateTripResponseType)
 
       // Verificar el estado del viaje
       if (updateTripResponseType.data.is_completed) {
@@ -281,7 +275,6 @@ export default function PassengerPage() {
         description: `Destino: ${destination.address}`,
       })
     } catch (error: any) {
-      console.error("Error starting tracking:", error)
       setIsButtonLoading(false)
       setTripStatus({
         type: TripStatusType.ERROR,
@@ -302,7 +295,6 @@ export default function PassengerPage() {
       cancelTimeout()
 
       if (!tripData) {
-        console.warn("Intentando detener el seguimiento sin datos de viaje")
         resetTrackingState()
         return
       }
@@ -313,7 +305,6 @@ export default function PassengerPage() {
       })
 
       if (!stopMonitoringResponse.ok) {
-        console.warn("Error al detener el monitoreo del viaje:", await stopMonitoringResponse.text())
         // Continuamos con el proceso aunque falle
       }
 
@@ -327,7 +318,6 @@ export default function PassengerPage() {
       })
 
       if (!updateResponse.ok) {
-        console.warn("Error al actualizar el estado del viaje:", await updateResponse.text())
         // Continuamos con el proceso aunque falle
       }
 
@@ -341,7 +331,6 @@ export default function PassengerPage() {
       })
       setIsButtonLoading(false)
 
-      console.log("intervals:",{interval:intervalRef.current,timeout:timeoutRef.current})
 
 
       toast({
@@ -349,7 +338,6 @@ export default function PassengerPage() {
         description: "Has dejado de seguir la ubicación del vehículo.",
       })
     } catch (error: any) {
-      console.error("Error stopping tracking:", error)
 
       // Aún así, reseteamos el estado para que el usuario pueda volver a empezar
       resetTrackingState()
@@ -484,7 +472,6 @@ export default function PassengerPage() {
           parsedDestination = JSON.parse(tripResponse.data.destination)
         }
       } catch (e) {
-        console.warn("Error al parsear el destino:", e)
         // Continuamos sin destino si hay error de parseo
       }
 
@@ -500,7 +487,6 @@ export default function PassengerPage() {
       })
       setIsTracking(true)
     } catch (error: any) {
-      console.error("Error getting trip data:", error)
       setTripStatus({
         type: TripStatusType.ERROR,
         message: "Error al cargar el viaje",
