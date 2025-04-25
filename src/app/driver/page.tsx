@@ -339,6 +339,7 @@ useEffect(() => {
         setActiveTrip(tripData)
         setIsAuthenticated(true)
         isLogged.current = true
+        setIsRechargeLoading(false)
       } catch (error) {
         localStorage.removeItem('tripId')
         localStorage.removeItem('driverAuthenticated')
@@ -350,6 +351,7 @@ useEffect(() => {
         setPlateNumber("")
         setImeiLastDigits("")
         setActiveTrip(null)
+        setIsRechargeLoading(false)
       }
     }
 
