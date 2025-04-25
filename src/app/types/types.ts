@@ -1,10 +1,6 @@
 export interface Trip {
   created_at: string;
-  destination: {
-    address: string;
-    lat: number;
-    lng: number;
-  };
+  destination: string;
   id: string;
   imei: string;
   is_active: boolean;
