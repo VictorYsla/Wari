@@ -209,6 +209,13 @@ export default function DriverPage() {
       }
 
       const typedRegisterTripResponse = (await response.json()) as CreateTripResponse
+
+      if(!typedRegisterTripResponse.success){
+        setTripId(typedRegisterTripResponse.data.id)
+        setActiveTrip(typedRegisterTripResponse.data)
+        localStorage.setItem("tripId", typedRegisterTripResponse.data.id)
+        return
+      }
       
 
       if (!typedRegisterTripResponse.success || !typedRegisterTripResponse.data || !typedRegisterTripResponse.data.id) {

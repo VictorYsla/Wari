@@ -1,11 +1,15 @@
 export interface Trip {
-    id: string
-    imei: string
-    destination: string | null
-    is_active: boolean
-    is_completed: boolean
-    created_at: string
-    updated_at: string
+  created_at: string;
+  destination: {
+    address: string;
+    lat: number;
+    lng: number;
+  };
+  id: string;
+  imei: string;
+  is_active: boolean;
+  is_completed: boolean;
+  updated_at: string;
   }
   
   export interface UpdateTripResponse {
@@ -15,6 +19,7 @@ export interface Trip {
   
   export interface CreateTripResponse {
     success: boolean
+    message:string
     data: Trip
   }
 

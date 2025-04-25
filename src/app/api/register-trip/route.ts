@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json()
 
-    return NextResponse.json({ success: true, data })
+    return NextResponse.json({ ...data })
   } catch (error: any) {
     return NextResponse.json(
       { success: false, message: error.message },
