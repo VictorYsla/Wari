@@ -62,6 +62,7 @@ export default function PassengerPage() {
   const searchParams = useSearchParams()
   const tripIdParam = searchParams.get("tripId")
 
+
  const {isConnected} = useTripSocket(scannedTripId,(trip: Trip) => {
     // Verificar que el viaje recibido corresponda al viaje actual que se está siguiendo
 
@@ -432,8 +433,11 @@ export default function PassengerPage() {
       })
       return
     }
+
+    const isAndroid = /android/i.test(navigator.userAgent);
+
   
-    if (!captureDataUrl) {
+    if (!captureDataUrl&&!isAndroid) {
       toast({
         title: 'Error',
         description: 'La captura aún no está lista. Espera unos segundos.',
@@ -447,13 +451,11 @@ export default function PassengerPage() {
       const url = `${window.location.origin}/passenger?tripId=${tripData.tripId}`
       const message = `Puedes seguir mi viaje en tiempo real aquí:\n ${url}`
       
-      toast({
-        title: "Permite compartir",
-        description: `${navigator.canShare})}`
-      })
+
+
   
       // Verificamos si el navegador soporta la API de compartir
-      if (navigator.canShare && captureFile && navigator.canShare({ files: [captureFile] })) {
+      if (navigator.canShare && captureFile && navigator.canShare({ files: [captureFile] })&&!isAndroid) {
   
         await navigator.share({
           title: 'Sigue mi viaje 🚗',
@@ -606,31 +608,37 @@ export default function PassengerPage() {
 
 
   useEffect(() => {
-    setIsShareLoading(true)
-    const captureScreen = async () => {
-      try {
-        const element = document.body // o tu contenedor específico
-        const dataUrl = await htmlToImage.toPng(element, { cacheBust: true, skipFonts: true })
-        
-        // Guardamos el dataURL
-        setCaptureDataUrl(dataUrl)
-  
-        // Preparamos el archivo ya
-        const response = await fetch(dataUrl)
-        const blob = await response.blob()
-        const generatedFile = new File([blob], 'captura-viaje.png', { type: 'image/png' })
-        
-        setCaptureFile(generatedFile) // <- ¡Nuevo estado para guardar el File listo!
-  
-      } catch (error) {
-      } finally {
-        setIsShareLoading(false)
-      }
-    }
+    const isAndroid = /android/i.test(navigator.userAgent);
+
+
+    if(!isAndroid){
+      setIsShareLoading(true)
+      const captureScreen = async () => {
+        try {
+          const element = document.body // o tu contenedor específico
+          const dataUrl = await htmlToImage.toPng(element, { cacheBust: true, skipFonts: true })
+          
+          // Guardamos el dataURL
+          setCaptureDataUrl(dataUrl)
     
-    setTimeout(() => {
-      captureScreen()
-    }, 5000);
+          // Preparamos el archivo ya
+          const response = await fetch(dataUrl)
+          const blob = await response.blob()
+          const generatedFile = new File([blob], 'captura-viaje.png', { type: 'image/png' })
+          
+          setCaptureFile(generatedFile) // <- ¡Nuevo estado para guardar el File listo!
+    
+        } catch (error) {
+        } finally {
+          setIsShareLoading(false)
+        }
+      }
+      
+      setTimeout(() => {
+        captureScreen()
+      }, 5000);
+
+    }
     
   }, [])
   
