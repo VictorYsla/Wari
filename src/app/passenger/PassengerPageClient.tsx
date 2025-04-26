@@ -13,6 +13,8 @@ import useTripSocket from "@/hooks/useTripSocket"
 import type { DeviceObject, GetTripResponse, Trip, UpdateTripResponse } from "../types/types"
 import { useSearchParams } from "next/navigation"
 import { useSafeTimeout } from "@/hooks/useSafeTimeOut"
+import * as htmlToImage from 'html-to-image'
+
 
 interface TripData {
   imei: string
@@ -46,6 +48,11 @@ export default function PassengerPage() {
   const [error, setError] = useState<string | null>(null)
   const [tripStatus, setTripStatus] = useState<TripStatus | null>(null)
   const [vehicleDetails, setVehicleDetails] = useState<DeviceObject | null>(null)
+  const [isShareLoading, setIsShareLoading] = useState(false)
+  const [captureDataUrl, setCaptureDataUrl] = useState<string | null>(null)
+  const [captureFile, setCaptureFile] = useState<File | null>(null) // <- para el File
+
+
 
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -396,22 +403,94 @@ export default function PassengerPage() {
     setTripStatus(null)
   }
 
-  const handleShareTracking = () => {
+  // const handleShareTracking = () => {
+  //   if (!tripData?.tripId) {
+  //     toast({
+  //       title: "Error",
+  //       description: "No hay un viaje activo para compartir",
+  //       variant: "destructive",
+  //     })
+  //     return
+  //   }
+
+  //   const url = `${window.location.origin}/passenger?tripId=${tripData.tripId}`
+  //   const message = encodeURIComponent(`🚗 Puedes seguir mi viaje en tiempo real aquí: ${url}`)
+  //   const whatsappUrl = `https://wa.me/?text=${message}`
+
+  //   window.open(whatsappUrl, "_blank")
+  // }
+
+  const handleShareTracking = async () => {
+
     if (!tripData?.tripId) {
+      setIsShareLoading(true)
+
       toast({
-        title: "Error",
-        description: "No hay un viaje activo para compartir",
-        variant: "destructive",
+        title: 'Error',
+        description: 'No hay un viaje activo para compartir',
+        variant: 'destructive',
       })
       return
     }
+  
+    if (!captureDataUrl) {
+      toast({
+        title: 'Error',
+        description: 'La captura aún no está lista. Espera unos segundos.',
+        variant: 'destructive',
+      })
+      return
+    }
+   
+    try {
 
-    const url = `${window.location.origin}/passenger?tripId=${tripData.tripId}`
-    const message = encodeURIComponent(`🚗 Puedes seguir mi viaje en tiempo real aquí: ${url}`)
-    const whatsappUrl = `https://wa.me/?text=${message}`
+      const url = `${window.location.origin}/passenger?tripId=${tripData.tripId}`
+      const message = `Puedes seguir mi viaje en tiempo real aquí:\n ${url}`
+      
+      toast({
+        title: "Permite compartir",
+        description: `${navigator.canShare})}`
+      })
+  
+      // Verificamos si el navegador soporta la API de compartir
+      if (navigator.canShare && captureFile && navigator.canShare({ files: [captureFile] })) {
+  
+        await navigator.share({
+          title: 'Sigue mi viaje 🚗',
+          text: message,
+          files: [captureFile],
+        })
+  
+        toast({
+          title: 'Compartido',
+          description: '¡Tu captura y link fueron compartidos!',
+        })
+        setIsShareLoading(false)
 
-    window.open(whatsappUrl, "_blank")
+  
+      } else {
+        // 🚨 Si no soporta navigator.share, fallback a WhatsApp
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
+          `\n🚗 *Datos del vehículo:*\n• Placa: ${vehicleDetails?.plate_number || 'N/A'}\n• Modelo: ${vehicleDetails?.model || 'N/A'}\n${message}`
+        )}`
+        window.open(whatsappUrl, '_blank')
+  
+      }
+      
+      setIsShareLoading(false)
+  
+    } catch (error) {
+      setIsShareLoading(false)
+
+      // toast({
+      //   title: 'Error',
+      //   description: 'No se pudo compartir el viaje.',
+      //   variant: 'destructive',
+      // })
+    }
   }
+  
+  
 
   const getVehicleByImei = async (imei:string) => {
     const response = await fetch(`/api/search-vehicle-with-imei?imei=${imei}`)
@@ -436,28 +515,7 @@ export default function PassengerPage() {
 
   }
 
-  useEffect(() => {
-    if (!cancelledTrip) return
 
-    intervalRef.current = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(intervalRef.current!)
-          intervalRef.current = null
-          setTripEnded(true)
-          setIsTracking(false)
-          setCancelledTrip(true)
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-
-    return () => {
-      clearInterval(intervalRef.current!),        
-      intervalRef.current = null
-}
-  }, [cancelledTrip])
 
   const getTripData = async () => {
     try {
@@ -546,6 +604,38 @@ export default function PassengerPage() {
     }
   }
 
+
+  useEffect(() => {
+    setIsShareLoading(true)
+    const captureScreen = async () => {
+      try {
+        const element = document.body // o tu contenedor específico
+        const dataUrl = await htmlToImage.toPng(element, { cacheBust: true, skipFonts: true })
+        
+        // Guardamos el dataURL
+        setCaptureDataUrl(dataUrl)
+  
+        // Preparamos el archivo ya
+        const response = await fetch(dataUrl)
+        const blob = await response.blob()
+        const generatedFile = new File([blob], 'captura-viaje.png', { type: 'image/png' })
+        
+        setCaptureFile(generatedFile) // <- ¡Nuevo estado para guardar el File listo!
+  
+      } catch (error) {
+      } finally {
+        setIsShareLoading(false)
+      }
+    }
+    
+    setTimeout(() => {
+      captureScreen()
+    }, 5000);
+    
+  }, [])
+  
+  
+
   useEffect(() => {
     if (tripIdParam) {
       getTripData()
@@ -553,6 +643,29 @@ export default function PassengerPage() {
       setIsLoading(false)
     }
   }, [tripIdParam])
+
+  useEffect(() => {
+    if (!cancelledTrip) return
+
+    intervalRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(intervalRef.current!)
+          intervalRef.current = null
+          setTripEnded(true)
+          setIsTracking(false)
+          setCancelledTrip(true)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => {
+      clearInterval(intervalRef.current!),        
+      intervalRef.current = null
+}
+  }, [cancelledTrip])
 
   if (isLoading) {
     return (
@@ -684,7 +797,7 @@ export default function PassengerPage() {
               <div className="p-4 bg-muted rounded-lg">
                 <h3 className="font-medium mb-1">Destino del viaje</h3>
                 <p className="text-sm">{destination.address}</p>
-                <div className="flex items-center font-medium mb-1">
+                <div className="flex items-center font-medium mb-1 mt-1">
                 <span>Placa de vehículo:</span>
                 <span className="text-sm ml-2">{vehicleDetails?.plate_number}</span>
                 </div>
@@ -709,9 +822,19 @@ export default function PassengerPage() {
               onClick={handleShareTracking}
               variant="ghost"
               className="w-full flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-500 hover:text-white transition-colors shadow-sm rounded-xl"
+              disabled={isShareLoading || !isConnected || !vehicleDetails?.plate_number || !vehicleDetails.model}
             >
-              <Share2 className="w-4 h-4 text-white" />
-              Compartir seguimiento
+              {isShareLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Cargando...
+              </>
+            ) : (
+              <>
+                <Share2 className="w-4 h-4 text-white" />
+                Compartir seguimiento              </>
+            )}
+
             </Button>
             <Button variant="destructive" className="w-full" onClick={stopTracking} disabled={isLoading || !isConnected}>
             {isButtonLoading ? (
