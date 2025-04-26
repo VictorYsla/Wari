@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { QRCodeGenerator } from "@/components/qr-code-generator"
 import { useToast } from "@/hooks/use-toast"
-import { Loader2, ShieldCheck } from "lucide-react"
+import { Loader2, LogOut, ShieldCheck, XCircle } from "lucide-react"
 import type { CreateTripResponse, GetTripResponse, Trip } from "../types/types"
 import useTripSocket from "@/hooks/useTripSocket"
 
@@ -41,6 +41,7 @@ export default function DriverPage() {
   const [activeTrip, setActiveTrip] = useState<Trip | null>(null)
   const [isRechargeLoading, setIsRechargeLoading] = useState(true)
   const [hasDestination, setHasDestination] = useState(false)
+  const [isCancelTripLoading, setIsCancelTripLoading] = useState(false)
 
   const isLogged = useRef(false)
   const { toast } = useToast()
@@ -318,6 +319,24 @@ export default function DriverPage() {
     setIsGeneratingQR(true)
   }
 
+  const cancelTrip = async () => {
+    setIsCancelTripLoading(true)
+    const stopMonitoringResponse = await fetch(`/api/stop-trip-monitoring?imei=${activeTrip?.imei}`, {
+      method: "POST",
+    })
+
+    const updateResponse = await fetch(`/api/update-trip?id=${activeTrip?.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        is_active: false,
+      }),
+    })
+
+    setIsCancelTripLoading(false)
+
+  }
+
 const getTrip = async (tripId:string)=>{
   const response = await fetch(`/api/get-trip?id=${tripId}`)
 
@@ -511,6 +530,26 @@ if (isRechargeLoading) {
                   Ocultar código QR
                 </Button>
               </div>
+              <div className="flex space-x-2 w-full">
+                <Button
+                  className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold"
+                  onClick={() => cancelTrip()}
+                  disabled={isCancelTripLoading || !isConnected}
+                >
+                 
+                  {isCancelTripLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Cancelando...
+              </>
+            ) : (
+              <>
+                <XCircle className="w-5 h-5" />
+                Cancelar viaje
+              </>
+            )}
+                </Button>
+              </div>
             </div>
           ) : (
             <Button className="w-full" onClick={generateQR} disabled={isLoading}>
@@ -530,7 +569,7 @@ if (isRechargeLoading) {
               </>
             ) : (
               <>
-                <ShieldCheck className="mr-2 h-4 w-4" />
+                <LogOut className="w-5 h-5" />
                 Cerrar sesión
               </>
             )}
