@@ -4,18 +4,18 @@ import { useEffect, useRef } from "react"
 import QRCode from "qrcode"
 
 interface QRCodeGeneratorProps {
-  vehicleKey: string
+  vehicleKey: string,
+  isActive:boolean
 }
 
-export function QRCodeGenerator({ vehicleKey }: QRCodeGeneratorProps) {
+export function QRCodeGenerator({ vehicleKey,isActive }: QRCodeGeneratorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-
 
   useEffect(() => {
     if (canvasRef.current && vehicleKey) {
       QRCode.toCanvas(
         canvasRef.current,
-        vehicleKey,
+        JSON.stringify({ tripId:vehicleKey, isActive }),
         {
           width: 250,
           margin: 1,
@@ -29,7 +29,7 @@ export function QRCodeGenerator({ vehicleKey }: QRCodeGeneratorProps) {
         },
       )
     }
-  }, [vehicleKey])
+  }, [vehicleKey,isActive])
 
   return (
     <div className="flex flex-col items-center justify-center p-4 bg-white rounded-lg">

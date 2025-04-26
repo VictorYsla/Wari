@@ -40,12 +40,15 @@ export default function DriverPage() {
   const [vehicleDetails, setVehicleDetails] = useState<DeviceObject | null>(null)
   const [activeTrip, setActiveTrip] = useState<Trip | null>(null)
   const [isRechargeLoading, setIsRechargeLoading] = useState(true)
+  const [hasDestination, setHasDestination] = useState(false)
 
   const isLogged = useRef(false)
   const { toast } = useToast()
 
   const {isConnected} = useTripSocket(tripId,(trip: Trip) => {
 
+    setHasDestination(!!trip.destination)
+ 
     setActiveTrip({...trip})
     localStorage.setItem("tripId", trip.id) // actualiza localStorage
 
@@ -341,6 +344,9 @@ useEffect(() => {
         const tripData = await getTrip(tripId)
         await findVehicleByPlate(plate ||'', tripData.imei.slice(-4)
       )
+      if(!!tripData.destination){
+        setHasDestination(true)
+      }
 
         setTripId(tripId)
         setActiveTrip(tripData)
@@ -490,7 +496,7 @@ if (isRechargeLoading) {
                 </div>
               )}
 
-              <QRCodeGenerator vehicleKey={tripId} />
+              <QRCodeGenerator vehicleKey={tripId} isActive={hasDestination} />
               <p className="text-sm text-muted-foreground text-center">
                 Comparte este código QR con los pasajeros para que puedan seguir tu ubicación. El código QR expirará
                 automáticamente al llegar al destino.

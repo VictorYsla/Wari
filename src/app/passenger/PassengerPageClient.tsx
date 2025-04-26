@@ -102,16 +102,24 @@ export default function PassengerPage() {
 
   const handleQRScanned = (data: string) => {
     try {
+
+
+
       // Parse the QR data - could be just the IMEI or a JSON object
       let tripId = data
+      let isActive = false
 
 
       try {
         // Try to parse as JSON first
         const parsedData = JSON.parse(data)
 
+        
+        
         if (parsedData.tripId) {
+          console.log("parsedData.tripId:",parsedData)
           tripId = parsedData.tripId
+          isActive= parsedData.isActive
         }
       } catch (e) {
         // If parsing fails, assume the data is just the trip ID
@@ -120,6 +128,11 @@ export default function PassengerPage() {
       // Validar que el tripId no esté vacío
       if (!tripId || tripId.trim() === "") {
         throw new Error("El código QR no contiene un ID de viaje válido")
+      }
+
+      if(isActive){
+        const url = `${window.location.origin}/passenger?tripId=${tripId}`
+        window.location.href = url;
       }
 
       setScannedTripId(tripId)
