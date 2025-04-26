@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { QRCodeScanner } from "@/components/qr-code-scanner"
 import { VehicleTracker } from "@/components/vehicle-tracker"
 import { useToast } from "@/hooks/use-toast"
-import { CheckCircle2, Share2, Flag, AlertCircle, Loader2, ShieldClose, ShieldCheck } from "lucide-react"
+import { CheckCircle2, Share2, Flag, AlertCircle, Loader2, ShieldClose, ShieldCheck, HelpCircle } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { DestinationSelector, type Destination } from "@/components/destination-selector"
 import useTripSocket from "@/hooks/useTripSocket"
@@ -667,9 +667,9 @@ export default function PassengerPage() {
             <Button
               onClick={handleShareTracking}
               variant="ghost"
-              className="w-full flex items-center gap-2 bg-yellow-400 text-black hover:bg-yellow-500 transition-colors shadow-sm rounded-xl"
+              className="w-full flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-500 hover:text-white transition-colors shadow-sm rounded-xl"
             >
-              <Share2 className="w-4 h-4 text-black" />
+              <Share2 className="w-4 h-4 text-white" />
               Compartir seguimiento
             </Button>
             <Button variant="destructive" className="w-full" onClick={stopTracking} disabled={isLoading || !isConnected}>
@@ -687,6 +687,19 @@ export default function PassengerPage() {
             </Button>
           </CardContent>
         </Card>
+        <a
+        href="tel:+5198756636"
+        className="fixed bottom-6 right-6 z-50"
+        >
+          <Button
+          className="bg-[#feb801] hover:bg-yellow-500 text-white font-semibold rounded-full p-4 shadow-lg flex items-center gap-2"
+          >
+            <HelpCircle className="w-5 h-5" />
+            Hawk - ¿Necesitas ayuda?
+            </Button>
+            
+        </a>
+
       </div>
     )
   }
