@@ -117,7 +117,6 @@ export default function PassengerPage() {
         
         
         if (parsedData.tripId) {
-          console.log("parsedData.tripId:",parsedData)
           tripId = parsedData.tripId
           isActive= parsedData.isActive
         }
