@@ -483,7 +483,7 @@ if (isRechargeLoading) {
                 <strong>Nombre:</strong> {vehicleDetails.name}
               </p>
               <p className="text-sm">
-                <strong>Placa:</strong> {vehicleDetails.device}
+                <strong>Placa:</strong> {vehicleDetails.plate_number}
               </p>
               <p className="text-sm">
                 <strong>Modelo:</strong> {vehicleDetails.model || "No especificado"}

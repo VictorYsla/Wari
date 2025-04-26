@@ -61,7 +61,7 @@ export async function GET(request: Request) {
 
     for (const user of data) {
       if (Array.isArray(user.objects)) {
-        const vehicle = user.objects.find((obj) => obj.device === plate)
+        const vehicle = user.objects.find((obj) => obj.plate_number === plate)
         if (vehicle) {
           foundVehicle = vehicle
           break
