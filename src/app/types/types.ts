@@ -23,3 +23,20 @@ export interface Trip {
     success: boolean
     data: Trip
   }
+
+  export interface DeviceObject {
+    name: string
+    imei: string
+    protocol: string
+    net_protocol: string
+    ip: string
+    port: string
+    active: string
+    expire: string
+    expire_dt: Date
+    device: string
+    sim_number: string
+    model: string
+    vin: string
+    plate_number: string
+  }

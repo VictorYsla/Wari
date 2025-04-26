@@ -10,7 +10,7 @@ import { CheckCircle2, Share2, Flag, AlertCircle, Loader2, ShieldClose, ShieldCh
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { DestinationSelector, type Destination } from "@/components/destination-selector"
 import useTripSocket from "@/hooks/useTripSocket"
-import type { GetTripResponse, Trip, UpdateTripResponse } from "../types/types"
+import type { DeviceObject, GetTripResponse, Trip, UpdateTripResponse } from "../types/types"
 import { useSearchParams } from "next/navigation"
 import { useSafeTimeout } from "@/hooks/useSafeTimeOut"
 
@@ -45,6 +45,8 @@ export default function PassengerPage() {
   const [isButtonLoading, setIsButtonLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [tripStatus, setTripStatus] = useState<TripStatus | null>(null)
+  const [vehicleDetails, setVehicleDetails] = useState<DeviceObject | null>(null)
+
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const isStoppedTracking = useRef(false)
@@ -221,12 +223,16 @@ export default function PassengerPage() {
         }),
       })
 
+
       if (!updateResponse.ok) {
         const errorData = await updateResponse.json()
         throw new Error(errorData.message || "Error al actualizar el viaje")
       }
 
       const updateTripResponseType = (await updateResponse.json()) as UpdateTripResponse
+
+      getVehicleByImei(updateTripResponseType?.data.imei)
+
 
 
       // Verificar el estado del viaje
@@ -407,6 +413,29 @@ export default function PassengerPage() {
     window.open(whatsappUrl, "_blank")
   }
 
+  const getVehicleByImei = async (imei:string) => {
+    const response = await fetch(`/api/search-vehicle-with-imei?imei=${imei}`)
+
+    if (!response.ok) {
+      throw new Error(`Error del servidor: ${response.status}`)
+    }
+
+    const data = await response.json()
+
+    if (!data.success || !data.vehicle) {
+      toast({
+        title: "Verificación fallida",
+        description: data.message || "No se pudo encontrar el vehículo.",
+        variant: "destructive",
+      })
+      return null
+    }
+
+    setVehicleDetails(data.vehicle)
+    return data.vehicle
+
+  }
+
   useEffect(() => {
     if (!cancelledTrip) return
 
@@ -453,6 +482,9 @@ export default function PassengerPage() {
       if (!tripResponse.data) {
         throw new Error("No se encontró información del viaje")
       }
+
+      getVehicleByImei(tripResponse?.data.imei)
+
 
       // Verificar el estado del viaje
       if (tripResponse.data.is_completed) {
@@ -652,7 +684,16 @@ export default function PassengerPage() {
               <div className="p-4 bg-muted rounded-lg">
                 <h3 className="font-medium mb-1">Destino del viaje</h3>
                 <p className="text-sm">{destination.address}</p>
-              </div>
+                <div className="flex items-center font-medium mb-1">
+                <span>Placa de vehículo:</span>
+                <span className="text-sm ml-2">{vehicleDetails?.plate_number}</span>
+                </div>
+
+                <div className="flex items-center font-medium mb-1">
+                  <span>Vehículo:</span>
+                  <span className="text-sm ml-2">{vehicleDetails?.model}</span>
+                </div>
+                </div>
             )}
             {cancelledTrip && (
               <Alert className="bg-amber-50 border-amber-200">

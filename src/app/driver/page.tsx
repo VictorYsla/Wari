@@ -8,26 +8,11 @@ import { Label } from "@/components/ui/label"
 import { QRCodeGenerator } from "@/components/qr-code-generator"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2, LogOut, ShieldCheck, XCircle } from "lucide-react"
-import type { CreateTripResponse, GetTripResponse, Trip } from "../types/types"
+import type { CreateTripResponse, DeviceObject, GetTripResponse, Trip } from "../types/types"
 import useTripSocket from "@/hooks/useTripSocket"
 
 // Interfaces para los tipos de datos
-interface DeviceObject {
-  name: string
-  imei: string
-  protocol: string
-  net_protocol: string
-  ip: string
-  port: string
-  active: string
-  expire: string
-  expire_dt: Date
-  device: string
-  sim_number: string
-  model: string
-  vin: string
-  plate_number: string
-}
+
 
 
 export default function DriverPage() {
