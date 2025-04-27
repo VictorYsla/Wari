@@ -206,12 +206,12 @@ export default function DriverPage() {
 
       const typedRegisterTripResponse = (await response.json()) as CreateTripResponse
 
-      // if(!typedRegisterTripResponse.success){
-      //   setTripId(typedRegisterTripResponse.data.id)
-      //   setActiveTrip(typedRegisterTripResponse.data)
-      //   localStorage.setItem("tripId", typedRegisterTripResponse.data.id)
-      //   return
-      // }
+      if(!typedRegisterTripResponse.success){
+        setTripId(typedRegisterTripResponse.data.id)
+        setActiveTrip(typedRegisterTripResponse.data)
+        localStorage.setItem("tripId", typedRegisterTripResponse.data.id)
+        return
+      }
       
 
       if (!typedRegisterTripResponse.data || !typedRegisterTripResponse.data.id) {
@@ -226,6 +226,7 @@ export default function DriverPage() {
 
       // Guardar en localStorage
       localStorage.setItem("tripId", newTrip.id)
+
 
     } catch (error) {
       throw error // Re-lanzar para manejo en el nivel superior

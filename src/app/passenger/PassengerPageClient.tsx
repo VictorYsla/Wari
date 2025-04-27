@@ -139,7 +139,9 @@ export default function PassengerPage() {
         throw new Error("El código QR no contiene un ID de viaje válido")
       }
 
-      if(isActive){
+      const isDifferentId = tripId !== scannedTripId
+
+      if(isActive && !isDifferentId){
         const url = `${window.location.origin}/passenger?tripId=${tripId}`
         window.location.href = url;
       }
