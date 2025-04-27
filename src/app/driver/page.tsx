@@ -149,11 +149,12 @@ export default function DriverPage() {
       const vehicle = await findVehicleByPlate(plateNumber.trim(), imeiLastDigits.trim())
 
       if (vehicle && vehicle.imei) {
-        localStorage.setItem("driverAuthenticated", "true")
-        localStorage.setItem("plate", plateNumber.trim())
+
 
 
         try {
+          localStorage.setItem("driverAuthenticated", "true")
+          localStorage.setItem("plate", plateNumber.trim())
           await createTrip(vehicle.imei)
 
           setIsAuthenticated(true)
@@ -205,15 +206,15 @@ export default function DriverPage() {
 
       const typedRegisterTripResponse = (await response.json()) as CreateTripResponse
 
-      if(!typedRegisterTripResponse.success){
-        setTripId(typedRegisterTripResponse.data.id)
-        setActiveTrip(typedRegisterTripResponse.data)
-        localStorage.setItem("tripId", typedRegisterTripResponse.data.id)
-        return
-      }
+      // if(!typedRegisterTripResponse.success){
+      //   setTripId(typedRegisterTripResponse.data.id)
+      //   setActiveTrip(typedRegisterTripResponse.data)
+      //   localStorage.setItem("tripId", typedRegisterTripResponse.data.id)
+      //   return
+      // }
       
 
-      if (!typedRegisterTripResponse.success || !typedRegisterTripResponse.data || !typedRegisterTripResponse.data.id) {
+      if (!typedRegisterTripResponse.data || !typedRegisterTripResponse.data.id) {
         throw new Error("Respuesta inválida del servidor al crear viaje")
       }
 
@@ -354,7 +355,7 @@ const getTrip = async (tripId:string)=>{
     throw new Error(errorData.message || `Error al obtener el viaje: ${response.status}`)
   }
 
-  const tripResponse = (await response.json()) as GetTripResponse
+  const tripResponse = data as GetTripResponse
 
   return tripResponse.data
 }
@@ -365,9 +366,11 @@ useEffect(() => {
     const tripId = localStorage.getItem("tripId")
     const isDriverAuthenticated = localStorage.getItem("driverAuthenticated")
     const plate = localStorage.getItem("plate")
+
     
 
     if (tripId && isDriverAuthenticated ) {
+
       try {
         const tripData = await getTrip(tripId)
         await findVehicleByPlate(plate ||'', tripData.imei.slice(-4)
