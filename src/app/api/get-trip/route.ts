@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { baseURL } from '../helpers'
 
-export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const id = searchParams.get('id')
-
-  if (!id) {
-    return NextResponse.json(
-      { success: false, message: 'Trip ID is required' },
-      { status: 400 }
-    )
-  }
-
+export async function POST(request: NextRequest) {
   try {
+    const body = await request.json()
+    const { id } = body
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, message: 'Trip ID is required' },
+        { status: 400 }
+      )
+    }
+
     const response = await fetch(`${baseURL}/trip/get-trip-by-id?id=${id}`, {
       method: 'GET',
       headers: {

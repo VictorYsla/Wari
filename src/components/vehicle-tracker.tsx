@@ -76,7 +76,16 @@ export function VehicleTracker({ vehicleKey, destination }: VehicleTrackerProps)
       setLoading(true)
 
       // Fetch location data from the API
-      const response = await fetch(`/api/vehicle-location?key=${vehicleKey}`)
+      const response = await fetch(`/api/vehicle-location`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          key: vehicleKey,
+        }),
+      })
+      
 
       if (!response.ok) {
         throw new Error("Error al obtener la ubicación del vehículo")

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { hawkBaseURL, hawkEndGetAllParams, hawkInitialGetAllParams } from "../helpers"
 
 // Interfaces para los tipos de datos
@@ -35,19 +35,16 @@ interface GetAllUsers {
   objects: DeviceObject[]
 }
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const imei = searchParams.get("imei")
-
-  if (!imei) {
-    return NextResponse.json({ success: false, message: "Código number is required" }, { status: 400 })
-  }
-
+export async function POST(request: NextRequest) {
   try {
-    // Call the API to get all users and their vehicles
-    const apiUrl = `${hawkBaseURL}${hawkInitialGetAllParams}${hawkEndGetAllParams}`
-    
+    const body = await request.json()
+    const { imei } = body
 
+    if (!imei) {
+      return NextResponse.json({ success: false, message: "Código number is required" }, { status: 400 })
+    }
+
+    const apiUrl = `${hawkBaseURL}${hawkInitialGetAllParams}${hawkEndGetAllParams}`
     const response = await fetch(apiUrl)
 
     if (!response.ok) {
@@ -81,14 +78,11 @@ export async function GET(request: Request) {
           vehicle: null,
           message: "No se encontró un vehículo con la placa ingresada",
         },
-        { status: 200 },
+        { status: 200 }
       )
     }
-    
   } catch (error) {
-
     // For demo purposes, return mock data if the API call fails
-    // In production, you would handle this differently
     return NextResponse.json({
       success: true,
       vehicle: {

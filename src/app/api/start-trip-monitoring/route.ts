@@ -1,12 +1,10 @@
-// app/api/create-trip-monitoring/route.ts
-
 import { NextRequest, NextResponse } from "next/server"
 import { baseURL } from "../helpers"
 
 export async function POST(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const id = searchParams.get("id")
+    const body = await request.json()
+    const { id } = body
 
     if (!id) {
       return NextResponse.json(
@@ -16,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     const response = await fetch(`${baseURL}/trip/create-trip-monitoring?id=${id}`, {
-      method: "POST", // o POST si es necesario
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },

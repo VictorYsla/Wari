@@ -3,8 +3,8 @@ import { baseURL } from "../helpers"
 
 export async function POST(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const imei = searchParams.get("imei")
+    // Obtener el cuerpo de la solicitud (en lugar de la URL)
+    const { imei } = await request.json()
 
     if (!imei) {
       return NextResponse.json(

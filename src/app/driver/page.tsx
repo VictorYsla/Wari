@@ -61,7 +61,13 @@ export default function DriverPage() {
   const findVehicleByPlate = async (plate: string, imeiLastDigits: string) => {
     try {
       // Call API to search for vehicle by plate number and verify IMEI
-      const response = await fetch(`/api/search-vehicle?plate=${plate}`)
+      const response = await fetch('/api/search-vehicle', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ plate: plate })
+      });
 
 
       if (!response.ok) {
@@ -238,9 +244,13 @@ export default function DriverPage() {
       }
 
       // Detener monitoreo del viaje
-      const stopMonitoringRes = await fetch(`/api/stop-trip-monitoring?imei=${imei}`, {
+      const stopMonitoringRes = await fetch(`/api/stop-trip-monitoring`, {
         method: "POST",
-      })
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ imei: imei }), // Enviar el imei en el cuerpo de la solicitud
+      });
 
       if (!stopMonitoringRes.ok) {
         // Continuamos a pesar del error
@@ -248,10 +258,11 @@ export default function DriverPage() {
 
       // Actualizar estado del viaje solo si hay un ID de viaje válido
       if (tripId) {
-        const updateTripRes = await fetch(`/api/update-trip?id=${tripId}`, {
+        const updateTripRes = await fetch(`/api/update-trip`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            id: tripId,           // ahora el id va en el body
             is_active: false,
           }),
         })
@@ -306,14 +317,19 @@ export default function DriverPage() {
 
   const cancelTrip = async () => {
     setIsCancelTripLoading(true)
-    const stopMonitoringResponse = await fetch(`/api/stop-trip-monitoring?imei=${activeTrip?.imei}`, {
+    const stopMonitoringResponse = await fetch(`/api/stop-trip-monitoring`, {
       method: "POST",
-    })
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ imei: activeTrip?.imei }), // Enviar el imei en el cuerpo de la solicitud
+    });
 
-    const updateResponse = await fetch(`/api/update-trip?id=${activeTrip?.id}`, {
+    const updateResponse = await fetch(`/api/update-trip`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        id: activeTrip?.id,           // ahora el id va en el body
         is_active: false,
       }),
     })
@@ -323,8 +339,16 @@ export default function DriverPage() {
   }
 
 const getTrip = async (tripId:string)=>{
-  const response = await fetch(`/api/get-trip?id=${tripId}`)
-
+  const response = await fetch(`/api/get-trip`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id: tripId,
+    }),
+  })
+  
+  const data = await response.json()
+  
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}))
     throw new Error(errorData.message || `Error al obtener el viaje: ${response.status}`)

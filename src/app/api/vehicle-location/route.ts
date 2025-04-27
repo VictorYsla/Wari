@@ -1,15 +1,15 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { hawkBaseURL, hawkEndParams, hawkInitialParams } from "../helpers"
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const key = searchParams.get("key")
-
-  if (!key) {
-    return NextResponse.json({ success: false, message: "Vehicle key is required" }, { status: 400 })
-  }
-
+export async function POST(request: NextRequest) {
   try {
+    const body = await request.json()
+    const { key } = body
+
+    if (!key) {
+      return NextResponse.json({ success: false, message: "Vehicle key is required" }, { status: 400 })
+    }
+
     const apiUrl = `${hawkBaseURL}${hawkInitialParams}${key}${hawkEndParams}`
 
     const response = await fetch(apiUrl)
@@ -42,7 +42,6 @@ export async function GET(request: Request) {
       )
     }
   } catch (error) {
-
     return NextResponse.json({
       success: true,
       location: {

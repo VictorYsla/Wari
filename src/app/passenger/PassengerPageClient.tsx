@@ -219,10 +219,12 @@ export default function PassengerPage() {
       }
 
       // Actualizar el viaje con el destino
-      const updateResponse = await fetch(`/api/update-trip?id=${scannedTripId}`, {
+
+      const updateResponse = await fetch(`/api/update-trip`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          id: scannedTripId,           // ahora el id va en el body
           destination: {
             address: destination.address,
             lat: destination.lat,
@@ -239,7 +241,6 @@ export default function PassengerPage() {
 
       const updateTripResponseType = (await updateResponse.json()) as UpdateTripResponse
 
-      getVehicleByImei(updateTripResponseType?.data.imei)
 
 
 
@@ -273,9 +274,16 @@ export default function PassengerPage() {
       }
 
       // Iniciar el monitoreo del viaje
-      const startMonitoringResponse = await fetch(`/api/start-trip-monitoring?id=${scannedTripId}`, {
+      const startMonitoringResponse = await fetch(`/api/start-trip-monitoring`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: scannedTripId,
+        }),
       })
+      
 
       if (!startMonitoringResponse.ok) {
         const errorData = await startMonitoringResponse.json()
@@ -287,6 +295,9 @@ export default function PassengerPage() {
         imei: updateTripResponseType.data.imei,
         tripId: updateTripResponseType.data.id,
       })
+
+      getVehicleByImei(updateTripResponseType?.data.imei)
+
 
       // setIsTracking(true)
       // setError(null)
@@ -326,19 +337,24 @@ export default function PassengerPage() {
       }
 
       // Detener el monitoreo del viaje
-      const stopMonitoringResponse = await fetch(`/api/stop-trip-monitoring?imei=${tripData.imei}`, {
+      const stopMonitoringResponse = await fetch(`/api/stop-trip-monitoring`, {
         method: "POST",
-      })
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ imei: tripData.imei }), // Enviar el imei en el cuerpo de la solicitud
+      });
 
       if (!stopMonitoringResponse.ok) {
         // Continuamos con el proceso aunque falle
       }
 
       // Actualizar el estado del viaje a inactivo
-      const updateResponse = await fetch(`/api/update-trip?id=${tripData.tripId}`, {
+      const updateResponse = await fetch(`/api/update-trip`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          id: tripData?.tripId,           // ahora el id va en el body
           is_active: false,
         }),
       })
@@ -495,8 +511,16 @@ export default function PassengerPage() {
   
 
   const getVehicleByImei = async (imei:string) => {
-    const response = await fetch(`/api/search-vehicle-with-imei?imei=${imei}`)
-
+    const response = await fetch(`/api/search-vehicle-with-imei`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        imei: imei,
+      }),
+    })
+    
     if (!response.ok) {
       throw new Error(`Error del servidor: ${response.status}`)
     }
@@ -529,7 +553,13 @@ export default function PassengerPage() {
         throw new Error("ID de viaje no válido")
       }
 
-      const response = await fetch(`/api/get-trip?id=${tripIdParam}`)
+      const response = await fetch(`/api/get-trip`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: tripIdParam,
+        }),
+      })
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))

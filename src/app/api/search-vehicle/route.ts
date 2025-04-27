@@ -35,19 +35,17 @@ interface GetAllUsers {
   objects: DeviceObject[]
 }
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const plate = searchParams.get("plate")
+export async function POST(request: Request) {
+  // Obtener los parámetros del cuerpo de la solicitud (no de la URL)
+  const { plate } = await request.json();
 
   if (!plate) {
     return NextResponse.json({ success: false, message: "Plate number is required" }, { status: 400 })
   }
 
   try {
-    // Call the API to get all users and their vehicles
+    // Llamada a la API para obtener todos los usuarios y sus vehículos
     const apiUrl = `${hawkBaseURL}${hawkInitialGetAllParams}${hawkEndGetAllParams}`
-    
-
     const response = await fetch(apiUrl)
 
     if (!response.ok) {
@@ -56,7 +54,7 @@ export async function GET(request: Request) {
 
     const data: GetAllUsers[] = await response.json()
 
-    // Search for the vehicle with the matching plate number across all users
+    // Buscar el vehículo con el número de placa coincidente en todos los usuarios
     let foundVehicle: DeviceObject | null = null
 
     for (const user of data) {
@@ -86,9 +84,8 @@ export async function GET(request: Request) {
     }
     
   } catch (error) {
-
-    // For demo purposes, return mock data if the API call fails
-    // In production, you would handle this differently
+    // Para fines de demostración, retorna datos simulados si falla la llamada a la API
+    // En producción, manejarías esto de manera diferente
     return NextResponse.json({
       success: true,
       vehicle: {
