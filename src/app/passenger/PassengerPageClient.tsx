@@ -95,7 +95,23 @@ export default function PassengerPage() {
         message: "Viaje cancelado",
         description: "El pasajero ha cancelado el viaje.",
       });
+      
+    return
+    }
 
+    if (!trip.is_active && !trip.is_completed && !isStoppedTracking.current && !trip.destination) {
+      toast({
+        title: "Viaje cancelado",
+        description: "El conductor ha cancelado el viaje. El QR expiró",
+        variant: "destructive",
+      })
+
+      setTripStatus({
+        type: TripStatusType.CANCELLED,
+        message: "Viaje cancelado",
+        description: "El conductor ha cancelado el viaje.",
+      });
+      return 
     }
 
     // Viaje cancelado (no activo y no completado)
