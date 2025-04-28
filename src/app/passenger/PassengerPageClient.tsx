@@ -45,7 +45,6 @@ export default function PassengerPage() {
   const [countdown, setCountdown] = useState(600) // 10 minutos en segundos
   const [isLoading, setIsLoading] = useState(true)
   const [isButtonLoading, setIsButtonLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [tripStatus, setTripStatus] = useState<TripStatus | null>(null)
   const [vehicleDetails, setVehicleDetails] = useState<DeviceObject | null>(null)
   const [isShareLoading, setIsShareLoading] = useState(false)
@@ -81,6 +80,22 @@ export default function PassengerPage() {
         description: "El viaje ha sido completado exitosamente.",
       })
       return
+    }
+
+    if(trip.is_canceled_by_passenger){
+
+      toast({
+        title: "Viaje cancelado",
+        description: "El pasajero ha cancelado el viaje. El compartir ubicación se detendrá en 10 minutos.",
+        variant: "destructive",
+      })
+
+      setTripStatus({
+        type: TripStatusType.CANCELLED,
+        message: "Viaje cancelado",
+        description: "El pasajero ha cancelado el viaje.",
+      });
+
     }
 
     // Viaje cancelado (no activo y no completado)
@@ -147,7 +162,6 @@ export default function PassengerPage() {
       }
 
       setScannedTripId(tripId)
-      setError(null)
       setTripStatus(null)
 
       toast({
@@ -170,7 +184,6 @@ export default function PassengerPage() {
 
   const handleDestinationSelect = (selectedDestination: Destination) => {
     setDestination(selectedDestination)
-    setError(null)
     setTripStatus(null)
 
     toast({
@@ -301,10 +314,7 @@ export default function PassengerPage() {
       getVehicleByImei(updateTripResponseType?.data.imei)
 
 
-      // setIsTracking(true)
-      // setError(null)
-      // setTripStatus(null)
-      // setIsButtonLoading(false)
+
       const url = `${window.location.origin}/passenger?tripId=${updateTripResponseType.data.id}`;
       window.location.href = url;
 
@@ -406,7 +416,6 @@ export default function PassengerPage() {
     setCancelledTrip(false)
     setScannedTripId("")
     setDestination(null)
-    setError(null)
     setTripStatus(null)
   }
 
@@ -418,7 +427,6 @@ export default function PassengerPage() {
   const resetScan = () => {
     setScannedTripId("")
     setDestination(null)
-    setError(null)
     setTripStatus(null)
   }
 
@@ -548,7 +556,6 @@ export default function PassengerPage() {
   const getTripData = async () => {
     try {
       setIsLoading(true)
-      setError(null)
       setTripStatus(null)
 
       if (!tripIdParam || tripIdParam.trim() === "") {

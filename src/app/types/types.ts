@@ -5,6 +5,7 @@ export interface Trip {
   imei: string;
   is_active: boolean;
   is_completed: boolean;
+  is_canceled_by_passenger:boolean;
   updated_at: string;
   }
   
