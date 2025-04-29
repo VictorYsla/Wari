@@ -50,6 +50,7 @@ export default function PassengerPage() {
   const [isShareLoading, setIsShareLoading] = useState(false)
   const [captureDataUrl, setCaptureDataUrl] = useState<string | null>(null)
   const [captureFile, setCaptureFile] = useState<File | null>(null) // <- para el File
+  const [isCancelledByPassenger, setIsCancelledByPassenger] = useState(false)
 
 
 
@@ -65,6 +66,7 @@ export default function PassengerPage() {
  const {isConnected} = useTripSocket(scannedTripId,(trip: Trip) => {
     // Verificar que el viaje recibido corresponda al viaje actual que se está siguiendo
 
+    setIsCancelledByPassenger(trip.is_canceled_by_passenger)
 
     // Viaje finalizado (completado)
     if (trip.is_completed) {
@@ -82,7 +84,7 @@ export default function PassengerPage() {
       return
     }
 
-    if(trip.is_canceled_by_passenger){
+    if(trip.is_canceled_by_passenger && !isStoppedTracking.current){
 
       toast({
         title: "Viaje cancelado",
@@ -90,11 +92,18 @@ export default function PassengerPage() {
         variant: "destructive",
       })
 
-      setTripStatus({
-        type: TripStatusType.CANCELLED,
-        message: "Viaje cancelado",
-        description: "El pasajero ha cancelado el viaje.",
-      });
+      setCancelledTrip(true)
+      setCountdown(600) // reiniciar cuenta por si acaso
+
+      setSafeTimeout(() => {
+        setTripEnded(true);
+        setIsTracking(false);
+        setTripStatus({
+          type: TripStatusType.CANCELLED,
+          message: "Viaje cancelado",
+          description: "El pasajero ha cancelado el viaje.",
+        });
+      }, 600000);
       
     return
     }
@@ -384,6 +393,7 @@ export default function PassengerPage() {
         body: JSON.stringify({
           id: tripData?.tripId,           // ahora el id va en el body
           is_active: false,
+          is_canceled_by_passenger:true
         }),
       })
 
@@ -691,7 +701,7 @@ export default function PassengerPage() {
       
       setTimeout(() => {
         captureScreen()
-      }, 5000);
+      }, 8000);
 
     }
     
@@ -874,7 +884,7 @@ export default function PassengerPage() {
             {cancelledTrip && (
               <Alert className="bg-amber-50 border-amber-200">
                 <AlertCircle className="h-4 w-4 text-amber-600" />
-                <AlertTitle className="text-amber-800">Viaje cancelado por el conductor</AlertTitle>
+                <AlertTitle className="text-amber-800">{isCancelledByPassenger?'Viaje cancelado por el pasajero':'Viaje cancelado por el conductor'}</AlertTitle>
                 <AlertDescription className="text-amber-700">
                   El seguimiento se detendrá en <b>{formattedTime}</b>.
                 </AlertDescription>
