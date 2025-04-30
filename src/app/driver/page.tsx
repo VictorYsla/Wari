@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Loader2, LogOut, ShieldCheck, XCircle } from "lucide-react"
 import type { CreateTripResponse, DeviceObject, GetTripResponse, Trip } from "../types/types"
 import useTripSocket from "@/hooks/useTripSocket"
+import { convertUtcToDeviceTime } from "@/helpers/time"
 
 // Interfaces para los tipos de datos
 
@@ -515,7 +516,7 @@ if (isRechargeLoading) {
                         <strong>Destino:</strong> {activeTrip.destination}
                       </p>
                       <p className="text-sm">
-                        <strong>Iniciado:</strong> {new Date(activeTrip.created_at).toLocaleString()}
+                        <strong>Iniciado:</strong> {convertUtcToDeviceTime(activeTrip.created_at)}
                       </p>
                     </>
                   ) : (

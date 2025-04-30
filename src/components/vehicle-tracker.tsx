@@ -7,6 +7,7 @@ import { MapPin, Clock, Navigation } from "lucide-react"
 import { useJsApiLoader } from "@react-google-maps/api"
 import type { Destination } from "./destination-selector"
 import { googleMapsApiKey } from "@/app/api/helpers"
+import { convertUtcToDeviceTime } from "@/helpers/time"
 
 interface VehicleTrackerProps {
   vehicleKey: string
@@ -216,10 +217,6 @@ export function VehicleTracker({ vehicleKey, destination }: VehicleTrackerProps)
     }
   }
 
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp)
-    return date.toLocaleTimeString()
-  }
 
   if (loadError) {
     return <div>Error al cargar el mapa</div>
@@ -262,7 +259,7 @@ export function VehicleTracker({ vehicleKey, destination }: VehicleTrackerProps)
             )}
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm">Última actualización: {formatTimestamp(location.timestamp)}</p>
+              <p className="text-sm">Última actualización: {convertUtcToDeviceTime(location.timestamp)}</p>
             </div>
           </div>
         </Card>
