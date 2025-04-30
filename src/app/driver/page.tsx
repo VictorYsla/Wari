@@ -516,7 +516,7 @@ if (isRechargeLoading) {
                         <strong>Destino:</strong> {activeTrip.destination}
                       </p>
                       <p className="text-sm">
-                        <strong>Iniciado:</strong> {convertUtcToDeviceTime(activeTrip.created_at)}
+                        <strong>Iniciado:</strong> {convertUtcToDeviceTime(activeTrip.start_date)}
                       </p>
                     </>
                   ) : (
