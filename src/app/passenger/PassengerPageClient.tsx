@@ -264,7 +264,8 @@ export default function PassengerPage() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          id: scannedTripId,           // ahora el id va en el body
+          id: scannedTripId,
+          start_date:new Date().toISOString(),           
           destination: {
             address: destination.address,
             lat: destination.lat,
@@ -456,23 +457,6 @@ export default function PassengerPage() {
     setTripStatus(null)
   }
 
-  // const handleShareTracking = () => {
-  //   if (!tripData?.tripId) {
-  //     toast({
-  //       title: "Error",
-  //       description: "No hay un viaje activo para compartir",
-  //       variant: "destructive",
-  //     })
-  //     return
-  //   }
-
-  //   const url = `${window.location.origin}/passenger?tripId=${tripData.tripId}`
-  //   const message = encodeURIComponent(`🚗 Puedes seguir mi viaje en tiempo real aquí: ${url}`)
-  //   const whatsappUrl = `https://wa.me/?text=${message}`
-
-  //   window.open(whatsappUrl, "_blank")
-  // }
-
   const handleShareTracking = async () => {
 
     if (!tripData?.tripId) {
@@ -535,12 +519,6 @@ export default function PassengerPage() {
   
     } catch (error) {
       setIsShareLoading(false)
-
-      // toast({
-      //   title: 'Error',
-      //   description: 'No se pudo compartir el viaje.',
-      //   variant: 'destructive',
-      // })
     }
   }
   

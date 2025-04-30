@@ -7,6 +7,7 @@ export interface Trip {
   is_completed: boolean;
   is_canceled_by_passenger:boolean;
   updated_at: string;
+  start_date:string;
   }
   
   export interface UpdateTripResponse {
