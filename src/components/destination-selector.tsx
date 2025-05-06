@@ -50,6 +50,7 @@ export function DestinationSelector({ onSelect, initialAddress = "" }: Destinati
       // Create a dummy div for PlacesService (it requires a DOM element)
       const dummyDiv = document.createElement("div")
       placesServiceRef.current = new window.google.maps.places.PlacesService(dummyDiv)
+      getCurrentLocation()
     }
   }, [])
 
@@ -252,6 +253,42 @@ export function DestinationSelector({ onSelect, initialAddress = "" }: Destinati
     setShowResults(false)
   }
 
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast({
+        title: "Geolocalización no soportada",
+        description: "Tu navegador no soporta la geolocalización",
+        variant: "destructive",
+      })
+      return
+    }
+  
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords
+        const coords = { lat: latitude, lng: longitude }
+        mapInstanceRef?.current?.panTo(coords)
+      },
+      (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+          toast({
+            title: "Permiso de ubicación denegado",
+            description: "Activa el permiso desde Ajustes > Safari o tu navegador > Ubicación",
+            variant: "destructive",
+          })
+          return
+        }
+        toast({
+          title: "Error",
+          description: "No se pudo obtener tu ubicación",
+          variant: "destructive",
+        })
+        console.error(error)
+      }
+    )
+  }
+  
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -280,7 +317,7 @@ export function DestinationSelector({ onSelect, initialAddress = "" }: Destinati
                 </button>
               )}
             </div>
-            <Button type="button" variant={isMapVisible ? "default" : "outline"} size="icon" onClick={toggleMap}>
+            <Button type="button" variant={isMapVisible ? "default" : "outline"} size="icon" onClick={getCurrentLocation}>
               <MapPin className="h-4 w-4" />
             </Button>
           </div>
@@ -295,7 +332,7 @@ export function DestinationSelector({ onSelect, initialAddress = "" }: Destinati
                     className="px-4 py-2 hover:bg-muted cursor-pointer text-sm"
                     onClick={() => handleSelectPlace(result.place_id, result.description)}
                   >
-                    <div className="flex items-start">
+                    <div className="flex items-start" >
                       <MapPin className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
                       <span>{result.description}</span>
                     </div>
