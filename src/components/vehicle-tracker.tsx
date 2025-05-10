@@ -148,7 +148,9 @@ export function VehicleTracker({
       );
 
       map.addListener("tilesloaded", () => {
-        setIsMapLoaded(true);
+        map.addListener("idle", () => {
+          setIsMapLoaded(true);
+        });
       });
 
       mapRef.current = map;

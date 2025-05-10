@@ -565,7 +565,11 @@ export default function DriverPage() {
                 </div>
               )}
 
-              <QRCodeGenerator vehicleKey={tripId} isActive={hasDestination} />
+              <QRCodeGenerator
+                vehicleKey={tripId}
+                isActive={hasDestination}
+                destination={activeTrip?.destination}
+              />
               <p className="text-sm text-muted-foreground text-center">
                 Comparte este código QR con los pasajeros para que puedan seguir
                 tu ubicación. El código QR expirará automáticamente al llegar al

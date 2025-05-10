@@ -1,21 +1,26 @@
-"use client"
+"use client";
 
-import { useEffect, useRef } from "react"
-import QRCode from "qrcode"
+import { useEffect, useRef } from "react";
+import QRCode from "qrcode";
 
 interface QRCodeGeneratorProps {
-  vehicleKey: string,
-  isActive:boolean
+  vehicleKey: string;
+  isActive: boolean;
+  destination?: string;
 }
 
-export function QRCodeGenerator({ vehicleKey,isActive }: QRCodeGeneratorProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+export function QRCodeGenerator({
+  vehicleKey,
+  isActive,
+  destination,
+}: QRCodeGeneratorProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     if (canvasRef.current && vehicleKey) {
       QRCode.toCanvas(
         canvasRef.current,
-        JSON.stringify({ tripId:vehicleKey, isActive }),
+        JSON.stringify({ tripId: vehicleKey, isActive, destination }),
         {
           width: 250,
           margin: 1,
@@ -24,16 +29,14 @@ export function QRCodeGenerator({ vehicleKey,isActive }: QRCodeGeneratorProps) {
             light: "#ffffff",
           },
         },
-        (error) => {
-          
-        },
-      )
+        (error) => {}
+      );
     }
-  }, [vehicleKey,isActive])
+  }, [vehicleKey, isActive]);
 
   return (
     <div className="flex flex-col items-center justify-center p-4 bg-white rounded-lg">
       <canvas ref={canvasRef} />
     </div>
-  )
+  );
 }

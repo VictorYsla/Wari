@@ -11,12 +11,14 @@ export const useQRScanner = () => {
     try {
       let tripId = data;
       let isActive = false;
+      let destination = "";
 
       try {
         const parsedData = JSON.parse(data);
         if (parsedData.tripId) {
           tripId = parsedData.tripId;
           isActive = parsedData.isActive;
+          destination = parsedData.destination;
         }
       } catch (e) {
         // Si parsing falla, asumimos que es solo el trip ID
@@ -28,7 +30,7 @@ export const useQRScanner = () => {
 
       const isDifferentId = tripId !== scannedTripId;
 
-      if (isActive && !isDifferentId) {
+      if (isActive && tripId && destination) {
         const url = `${window.location.origin}/passenger?tripId=${tripId}`;
         window.location.href = url;
       }

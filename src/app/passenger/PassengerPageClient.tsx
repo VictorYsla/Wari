@@ -509,7 +509,11 @@ export default function PassengerPage() {
     return <ErrorView tripStatus={tripStatus} onGoBack={goToNewTrip} />;
   }
 
-  if (!tripData?.is_active && !tripData?.grace_period_active && tripData?.id) {
+  if (
+    (!tripData?.is_active && !tripData?.grace_period_active && tripData?.id) ||
+    tripStatus?.type === TripStatusType.CANCELLED ||
+    tripStatus?.type === TripStatusType.COMPLETED
+  ) {
     return (
       <TripEndedView
         tripData={tripData}
