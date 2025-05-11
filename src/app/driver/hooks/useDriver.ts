@@ -29,7 +29,7 @@ export const useDriver = () => {
   });
 
   const { isConnected } = useTripSocket(
-    tripState.activeTrip?.id,
+    tripState.activeTrip?.id || "",
     (trip: Trip) => {
       setTripState((prev) => ({
         ...prev,
