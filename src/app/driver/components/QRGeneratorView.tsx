@@ -22,26 +22,27 @@ export const QRGeneratorView = ({
   return (
     <div className="flex flex-col items-center space-y-4">
       {activeTrip && activeTrip.is_active ? (
-        <div className="p-4 bg-muted rounded-lg w-full mb-2">
-          <h3 className="font-medium mb-1">Estado del QR</h3>
+        <div className="p-4 bg-white border-amber-300 border rounded-lg w-full mb-2">
+          <h2 className="font-bold text-lg mb-2">Estado del QR</h2>
           {activeTrip.destination ? (
-            <>
-              <p className="text-sm">
-                <strong>Destino:</strong> {activeTrip.destination}
-              </p>
-              <p className="text-sm">
-                <strong>Iniciado:</strong>{" "}
-                {convertUtcToDeviceTime(activeTrip.start_date)}
-              </p>
-            </>
+            <div className="mb-6">
+              <div className="space-y-1">
+                <p>
+                  <span className="font-bold">Destino:</span>{" "}
+                  {JSON.parse(activeTrip.destination).address}
+                </p>
+                <p>
+                  <span className="font-bold">Iniciado:</span>{" "}
+                  {convertUtcToDeviceTime(activeTrip.start_date)}
+                </p>
+              </div>
+            </div>
           ) : (
-            <p className="text-sm">
-              QR activo esperando que un pasajero defina el destino.
-            </p>
+            <p>QR activo esperando que un pasajero defina el destino.</p>
           )}
         </div>
       ) : (
-        <div className="p-4 bg-muted rounded-lg w-full mb-2">
+        <div className="p-4 bg-white border-amber-300 border rounded-lg w-full mb-2">
           <p className="text-sm text-center">QR disponible. Actualizando...</p>
         </div>
       )}
@@ -52,20 +53,24 @@ export const QRGeneratorView = ({
         destination={activeTrip?.destination}
       />
 
-      <p className="text-sm text-muted-foreground text-center">
+      <p className="text-center text-sm text-gray-700 max-w-xs">
         Comparte este código QR con los pasajeros para que puedan seguir tu
         ubicación. El código QR expirará automáticamente al llegar al destino.
       </p>
 
       <div className="flex space-x-2 w-full">
-        <Button variant="outline" className="flex-1" onClick={onHideQR}>
+        <Button
+          variant="outline"
+          className="w-full bg-amber-300 hover:bg-amber-400 text-black py-6 flex items-center justify-center gap-2"
+          onClick={onHideQR}
+        >
           Ocultar código QR
         </Button>
       </div>
 
       <div className="flex space-x-2 w-full">
         <Button
-          className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold"
+          className="w-full bg-orange-500 hover:bg-orange-600 text-white py-6 flex items-center justify-center gap-2"
           onClick={onCancelTrip}
           disabled={isCancelLoading || !isConnected}
         >

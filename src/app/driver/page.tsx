@@ -5,6 +5,7 @@ import { AuthForm } from "./components/AuthForm";
 import { DriverPanel } from "./components/DriverPanel";
 import { LoadingView } from "@/components/LoadingView";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Image from "next/image";
 
 export default function DriverPage() {
   const {
@@ -26,26 +27,32 @@ export default function DriverPage() {
 
   if (!authState.isAuthenticated) {
     return (
-      <div className="container flex items-center justify-center min-h-screen py-12">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Acceso de Conductor</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <AuthForm
-              plateNumber={authState.plateNumber}
-              imeiLastDigits={authState.imeiLastDigits}
-              isLoading={loading.auth}
-              onPlateChange={(value) =>
-                setAuthState({ ...authState, plateNumber: value })
-              }
-              onImeiChange={(value) =>
-                setAuthState({ ...authState, imeiLastDigits: value })
-              }
-              onSubmit={handleLogin}
-            />
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-[#fffbeb] flex flex-col items-center justify-center px-4 py-8">
+        <div className="w-full max-w-md">
+          <Card className="border-amber-300 border-2 bg-[#fffbeb] p-6 shadow-sm">
+            <h1 className="text-2xl font-bold mb-2 text-[#2a2416]">
+              Acceso de Conductor
+            </h1>
+            <p className="text-gray-700 mb-6">
+              Ingresa la placa del vehículo y el código de acceso
+            </p>
+            {/* Placa del vehículo */}
+            <div className="mb-6">
+              <AuthForm
+                plateNumber={authState.plateNumber}
+                imeiLastDigits={authState.imeiLastDigits}
+                isLoading={loading.auth}
+                onPlateChange={(value) =>
+                  setAuthState({ ...authState, plateNumber: value })
+                }
+                onImeiChange={(value) =>
+                  setAuthState({ ...authState, imeiLastDigits: value })
+                }
+                onSubmit={handleLogin}
+              />
+            </div>
+          </Card>
+        </div>
       </div>
     );
   }
