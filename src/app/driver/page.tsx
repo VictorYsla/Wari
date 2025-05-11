@@ -58,21 +58,17 @@ export default function DriverPage() {
   }
 
   return (
-    <div className="container flex flex-col items-center justify-center min-h-screen py-12 space-y-6">
-      <DriverPanel
-        vehicleDetails={authState.vehicleDetails}
-        activeTrip={tripState.activeTrip}
-        isGeneratingQR={tripState.isGeneratingQR}
-        isLoading={loading.auth}
-        isConnected={isConnected}
-        isCancelLoading={loading.cancel}
-        onGenerateQR={() =>
-          setTripState({ ...tripState, isGeneratingQR: true })
-        }
-        onCancelTrip={cancelTrip}
-        onHideQR={() => setTripState({ ...tripState, isGeneratingQR: false })}
-        onLogout={handleLogout}
-      />
-    </div>
+    <DriverPanel
+      vehicleDetails={authState.vehicleDetails}
+      activeTrip={tripState.activeTrip}
+      isGeneratingQR={tripState.isGeneratingQR}
+      isLoading={loading.auth}
+      isConnected={isConnected}
+      isCancelLoading={loading.cancel}
+      onGenerateQR={() => setTripState({ ...tripState, isGeneratingQR: true })}
+      onCancelTrip={cancelTrip}
+      onHideQR={() => setTripState({ ...tripState, isGeneratingQR: false })}
+      onLogout={handleLogout}
+    />
   );
 }
