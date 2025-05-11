@@ -16,6 +16,7 @@ import { useJsApiLoader } from "@react-google-maps/api";
 import type { Destination } from "./destination-selector";
 import { googleMapsApiKey } from "@/app/api/helpers";
 import { convertUtcToDeviceTime } from "@/helpers/time";
+import { Button } from "./ui/button";
 
 interface VehicleTrackerProps {
   vehicleKey: string;
@@ -34,6 +35,7 @@ const mapContainerStyle = {
   width: "100%",
   height: "300px",
   borderRadius: "0.5rem",
+  border: "1px solid black", // ← aquí agregas el borde negro
 };
 
 // Declare google variable
@@ -144,6 +146,8 @@ export function VehicleTracker({
           zoomControl: true,
           streetViewControl: false,
           mapTypeControl: false,
+          // gestureHandling: "greedy",
+          // draggable: true,
         }
       );
 
@@ -301,39 +305,13 @@ export function VehicleTracker({
           </div>
         </Card>
       )}
-
       <Button
-        className="w-full"
+        className="w-full bg-amber-300 hover:bg-amber-400 text-black dark:bg-amber-600 dark:hover:bg-amber-700 dark:text-white py-6"
         onClick={fetchVehicleLocation}
         disabled={loading}
       >
         {loading ? "Actualizando..." : "Actualizar ubicación"}
       </Button>
     </div>
-  );
-}
-
-interface ButtonProps {
-  children: ReactNode;
-  className?: string;
-  disabled?: boolean;
-  onClick?: MouseEventHandler<HTMLButtonElement>;
-}
-
-// This is a local component just for the VehicleTracker
-function Button({
-  children,
-  className = "",
-  disabled = false,
-  onClick,
-}: ButtonProps) {
-  return (
-    <button
-      className={`px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 ${className}`}
-      disabled={disabled}
-      onClick={onClick}
-    >
-      {children}
-    </button>
   );
 }

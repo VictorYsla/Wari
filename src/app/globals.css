@@ -91,3 +91,21 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Oculta los elementos de UI que html5-qrcode agrega */
+#qr-reader__dashboard_section,
+#qr-reader__dashboard_section_csr,
+#qr-reader__scan_region,
+#qr-reader__camera_selection,
+#qr-reader__dashboard,
+#qr-reader__qrbox {
+  display: none !important;
+}
+
+/* Asegura que el video ocupe todo el cuadrado */
+#qr-reader video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  border-radius: 0.5rem;
+}

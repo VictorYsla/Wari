@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { TripStatus, TripStatusType } from "../types";
 
@@ -27,8 +27,6 @@ export const useQRScanner = () => {
       if (!tripId || tripId.trim() === "") {
         throw new Error("El código QR no contiene un ID de viaje válido");
       }
-
-      const isDifferentId = tripId !== scannedTripId;
 
       if (isActive && tripId && destination) {
         const url = `${window.location.origin}/passenger?tripId=${tripId}`;

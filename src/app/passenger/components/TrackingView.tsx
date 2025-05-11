@@ -57,54 +57,64 @@ export const TrackingView = ({
   const formattedTime = `${minutes}:${seconds.toString().padStart(2, "0")}`;
 
   return (
-    <div className="container flex flex-col items-center justify-center min-h-screen py-12 space-y-6">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Seguimiento de Vehículo</CardTitle>
-          <CardDescription>
+    <div className="min-h-screen bg-[#fffbeb] flex flex-col items-center px-4 py-8 transition-colors duration-300">
+      <div className="w-full max-w-md space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl md:text-4xl font-bold">
+            Seguimiento
+            <br />
+            del vehículo
+          </h1>
+          <p className="text-foreground/80 mt-2">
             Estás siguiendo la ubicación del vehículo en tiempo real
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {destination && (
-            <div className="p-4 bg-muted rounded-lg">
-              <h3 className="font-medium mb-1">Destino del viaje</h3>
-              <p className="text-sm">{destination.address}</p>
-              <div className="flex items-center font-medium mb-1 mt-1">
-                <span>Placa de vehículo:</span>
-                <span className="text-sm ml-2">
-                  {vehicleDetails?.plate_number}
-                </span>
-              </div>
+          </p>
+        </div>
 
-              <div className="flex items-center font-medium mb-1">
-                <span>Vehículo:</span>
-                <span className="text-sm ml-2">{vehicleDetails?.model}</span>
-              </div>
+        {destination && (
+          <Card className="bg-white dark:bg-gray-800 p-5 shadow-sm w-full">
+            <h2 className="font-bold text-lg mb-1">Destino del viaje</h2>
+            <p className="mb-3">{destination.address}</p>
+
+            <div className="space-y-1">
+              <p>
+                <span className="font-bold">Placa:</span>{" "}
+                {vehicleDetails?.plate_number}
+              </p>
+              <p>
+                <span className="font-bold">Vehículo:</span>{" "}
+                {vehicleDetails?.model}
+              </p>
             </div>
-          )}
-          {!tripData?.is_active && (
-            <Alert className="bg-amber-50 border-amber-200">
-              <AlertCircle className="h-4 w-4 text-amber-600" />
-              <AlertTitle className="text-amber-800">
+          </Card>
+        )}
+
+        {!tripData?.is_active && (
+          <Card className="bg-white dark:bg-gray-800 p-5 shadow-sm w-full">
+            <Alert className="bg-white border-red-600">
+              <AlertCircle className="h-4 w-4 text-red-600" color="red" />
+              <AlertTitle className="text-red-800">
                 {tripData?.is_canceled_by_passenger
                   ? "Viaje cancelado por el pasajero"
                   : "Viaje cancelado por el conductor"}
               </AlertTitle>
-              <AlertDescription className="text-amber-700">
+              <AlertDescription className="text-red-700">
                 El seguimiento se detendrá en <b>{formattedTime}</b>.
               </AlertDescription>
             </Alert>
-          )}
-          <VehicleTracker
-            vehicleKey={tripIdentifier?.imei || ""}
-            destination={destination}
-            setIsMapLoaded={setIsMapLoaded}
-          />
+          </Card>
+        )}
+
+        <VehicleTracker
+          vehicleKey={tripIdentifier?.imei || ""}
+          destination={destination}
+          setIsMapLoaded={setIsMapLoaded}
+        />
+
+        <div className="space-y-4 mt-4">
           <Button
             onClick={onShareTracking}
             variant="ghost"
-            className="w-full flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-500 hover:text-white transition-colors shadow-sm rounded-xl"
+            className="w-full bg-blue-600 hover:bg-orange-600 text-white py-6"
             disabled={
               isShareLoading ||
               !isConnected ||
@@ -120,13 +130,13 @@ export const TrackingView = ({
             ) : (
               <>
                 <Share2 className="w-4 h-4 text-white" />
-                Compartir seguimiento{" "}
+                Compartir seguimiento
               </>
             )}
           </Button>
           <Button
             variant="destructive"
-            className="w-full"
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-6 mb-10"
             onClick={onStopTracking}
             disabled={!isConnected}
           >
@@ -142,8 +152,9 @@ export const TrackingView = ({
               </>
             )}
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
       <a href="tel:+5198756636" className="fixed bottom-6 right-6 z-50">
         <Button className="bg-[#feb801] hover:bg-yellow-500 text-white font-semibold rounded-full p-4 shadow-lg flex items-center gap-2">
           <HelpCircle className="w-5 h-5" />
