@@ -5,10 +5,10 @@ import { useToast } from "@/hooks/use-toast";
 import * as htmlToImage from "html-to-image";
 
 // Components
-import { LoadingView } from "./components/LoadingView";
+import { LoadingView } from "../../components/LoadingView";
 import { TrackingView } from "./components/TrackingView";
 import { QRScanView } from "./components/QRScanView";
-import { ErrorView } from "./components/ErrorView";
+import { ErrorView } from "../../components/ErrorView";
 import { TripEndedView } from "./components/TripEndedView";
 
 // Hooks
@@ -232,6 +232,8 @@ export default function PassengerPage() {
         return;
       }
 
+      const isActive = tripData?.is_active;
+
       const stopMonitoringResponse = await fetch(`/api/stop-trip-monitoring`, {
         method: "POST",
         headers: {
@@ -246,10 +248,10 @@ export default function PassengerPage() {
           id: tripIdentifier?.tripId,
           is_active: false,
           is_canceled_by_passenger: true,
-          grace_period_active: true,
-          grace_period_end_time: new Date(
-            Date.now() + 10 * 60 * 1000
-          ).toISOString(),
+          grace_period_active: isActive ? true : false,
+          grace_period_end_time: isActive
+            ? new Date(Date.now() + 10 * 60 * 1000).toISOString()
+            : null,
         }),
       });
 

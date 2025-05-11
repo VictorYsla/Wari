@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { LoadingView } from "./components/LoadingView";
+import { LoadingView } from "../../components/LoadingView";
 
 export default function PassengerPage() {
   return (
