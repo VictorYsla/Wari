@@ -166,6 +166,7 @@ export const useDriver = () => {
     setLoading((prev) => ({ ...prev, auth: true }));
 
     const isActive = tripState.activeTrip?.is_active;
+    const hasDestination = !!tripState.activeTrip?.destination;
 
     try {
       isLogged.current = false;
@@ -183,10 +184,11 @@ export const useDriver = () => {
           body: JSON.stringify({
             id: tripState.activeTrip.id,
             is_active: false,
-            grace_period_active: isActive ? true : false,
-            grace_period_end_time: isActive
-              ? new Date(Date.now() + 10 * 60 * 1000).toISOString()
-              : null,
+            grace_period_active: isActive && hasDestination ? true : false,
+            grace_period_end_time:
+              isActive && hasDestination
+                ? new Date(Date.now() + 10 * 60 * 1000).toISOString()
+                : null,
           }),
         });
       }
@@ -226,6 +228,7 @@ export const useDriver = () => {
     setLoading({ ...loading, cancel: true });
 
     const isActive = tripState.activeTrip?.is_active;
+    const hasDestination = !!tripState.activeTrip?.destination;
 
     const stopMonitoringResponse = await fetch(`/api/stop-trip-monitoring`, {
       method: "POST",
@@ -241,10 +244,11 @@ export const useDriver = () => {
       body: JSON.stringify({
         id: tripState.activeTrip?.id, // ahora el id va en el body
         is_active: false,
-        grace_period_active: isActive ? true : false,
-        grace_period_end_time: isActive
-          ? new Date(Date.now() + 10 * 60 * 1000).toISOString()
-          : null,
+        grace_period_active: isActive && hasDestination ? true : false,
+        grace_period_end_time:
+          isActive && hasDestination
+            ? new Date(Date.now() + 10 * 60 * 1000).toISOString()
+            : null,
       }),
     });
 

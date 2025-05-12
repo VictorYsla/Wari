@@ -233,6 +233,7 @@ export default function PassengerPage() {
       }
 
       const isActive = tripData?.is_active;
+      const hasDestination = !!tripData?.destination;
 
       const stopMonitoringResponse = await fetch(`/api/stop-trip-monitoring`, {
         method: "POST",
@@ -248,10 +249,11 @@ export default function PassengerPage() {
           id: tripIdentifier?.tripId,
           is_active: false,
           is_canceled_by_passenger: true,
-          grace_period_active: isActive ? true : false,
-          grace_period_end_time: isActive
-            ? new Date(Date.now() + 10 * 60 * 1000).toISOString()
-            : null,
+          grace_period_active: isActive && hasDestination ? true : false,
+          grace_period_end_time:
+            isActive && hasDestination
+              ? new Date(Date.now() + 10 * 60 * 1000).toISOString()
+              : null,
         }),
       });
 
