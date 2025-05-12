@@ -500,6 +500,10 @@ export default function PassengerPage() {
   useEffect(() => {
     if (tripIdParam) {
       getTripData();
+      window.onpopstate = () => {
+        const url = `${window.location.origin}/passenger`;
+        window.location.href = url;
+      };
     } else {
       setIsLoading(false);
     }
