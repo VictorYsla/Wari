@@ -168,6 +168,8 @@ export const useDriver = () => {
     const isActive = tripState.activeTrip?.is_active;
 
     try {
+      isLogged.current = false;
+
       if (tripState.activeTrip?.imei) {
         await fetch("/api/stop-trip-monitoring", {
           method: "POST",
@@ -204,8 +206,6 @@ export const useDriver = () => {
         activeTrip: null,
         isGeneratingQR: false,
       });
-
-      isLogged.current = false;
 
       toast({
         title: "Sesión cerrada",
@@ -249,20 +249,6 @@ export const useDriver = () => {
     });
 
     setLoading({ ...loading, cancel: false });
-  };
-
-  const generateQR = () => {
-    if (!tripState.activeTrip?.id || tripState.activeTrip?.id.trim() === "") {
-      toast({
-        title: "Error",
-        description:
-          "No se puede generar el código QR porque no hay un viaje activo.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setTripState({ ...tripState, isGeneratingQR: true });
   };
 
   // Cargar estado inicial desde localStorage
@@ -333,6 +319,5 @@ export const useDriver = () => {
     findVehicleByPlate,
     createTrip,
     cancelTrip,
-    generateQR,
   };
 };

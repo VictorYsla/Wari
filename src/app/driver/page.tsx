@@ -4,8 +4,7 @@ import { useDriver } from "./hooks/useDriver";
 import { AuthForm } from "./components/AuthForm";
 import { DriverPanel } from "./components/DriverPanel";
 import { LoadingView } from "@/components/LoadingView";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Image from "next/image";
+import { Card } from "@/components/ui/card";
 
 export default function DriverPage() {
   const {
@@ -18,7 +17,6 @@ export default function DriverPage() {
     handleLogin,
     handleLogout,
     cancelTrip,
-    generateQR,
   } = useDriver();
 
   if (loading.recharge) {
