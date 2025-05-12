@@ -5,24 +5,38 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Luggage } from "lucide-react";
 
 export const LoadingView = () => {
   return (
-    <div className="container flex flex-col items-center justify-center min-h-screen py-12 space-y-6">
-      <Card className="w-full max-w-md shadow-lg rounded-lg">
-        <CardHeader>
-          <CardTitle>Cargando información del viaje...</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex justify-center">
-            <div className="w-12 h-12 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
+    <div className="min-h-screen bg-[#fffbeb] flex flex-col items-center justify-center px-4 py-8">
+      <div className="w-full max-w-md flex flex-col items-center">
+        {/* Título de carga */}
+        <h1 className="text-3xl font-bold text-center mb-10 text-[#2a2416]">
+          Cargando
+          <br />
+          información
+          <br />
+          del viaje...
+        </h1>
+
+        {/* Animación de carga infinita */}
+        <div className="relative mb-10">
+          <div className="w-32 h-32 rounded-full border-8 border-amber-300/30"></div>
+          <div className="absolute top-0 left-0 w-32 h-32 rounded-full border-8 border-amber-300 border-t-transparent animate-spin"></div>
+          <div className="absolute top-0 left-0 w-32 h-32 flex items-center justify-center">
+            <Luggage className="w-12 h-12 text-black" />
           </div>
-          <CardDescription className="text-center text-gray-500">
-            Estamos obteniendo todos los detalles para ti. Esto puede tardar
-            unos momentos.
-          </CardDescription>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Texto explicativo */}
+        <div className="text-center max-w-xs">
+          <p className="text-gray-700 mb-2">
+            Estamos obteniendo todos los detalles para&nbsp;ti.
+          </p>
+          <p className="text-gray-700">Esto puede tardar unos minutos.</p>
+        </div>
+      </div>
     </div>
   );
 };
