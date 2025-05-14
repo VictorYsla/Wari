@@ -29,7 +29,7 @@ export const googleMapsApiKey = isProduction
   : process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 export const clerkPublishableKey = isProduction
-  ? process.env.NEXT_CLERK_PUBLISHABLE_KEY
+  ? process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
   : process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 export const clerkSecretKey = isProduction
