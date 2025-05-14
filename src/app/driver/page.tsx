@@ -5,8 +5,11 @@ import { AuthForm } from "./components/AuthForm";
 import { DriverPanel } from "./components/DriverPanel";
 import { LoadingView } from "@/components/LoadingView";
 import { Card } from "@/components/ui/card";
+import { useUser } from "@clerk/nextjs";
 
 export default function DriverPage() {
+  const { isLoaded, isSignedIn, user } = useUser();
+
   const {
     authState,
     tripState,
@@ -19,11 +22,11 @@ export default function DriverPage() {
     cancelTrip,
   } = useDriver();
 
-  if (loading.recharge) {
+  if (!isLoaded || loading.recharge) {
     return <LoadingView />;
   }
 
-  if (!authState.isAuthenticated) {
+  if (!isSignedIn) {
     return (
       <div className="min-h-screen bg-[#fffbeb] flex flex-col items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
@@ -38,14 +41,10 @@ export default function DriverPage() {
             <div className="mb-6">
               <AuthForm
                 plateNumber={authState.plateNumber}
-                imeiLastDigits={authState.imeiLastDigits}
+                password={authState.password}
                 isLoading={loading.auth}
-                onPlateChange={(value) =>
-                  setAuthState({ ...authState, plateNumber: value })
-                }
-                onImeiChange={(value) =>
-                  setAuthState({ ...authState, imeiLastDigits: value })
-                }
+                onPlateChange={(value) => setAuthState({ plateNumber: value })}
+                onPasswordChange={(value) => setAuthState({ password: value })}
                 onSubmit={handleLogin}
               />
             </div>
@@ -63,9 +62,9 @@ export default function DriverPage() {
       isLoading={loading.auth}
       isConnected={isConnected}
       isCancelLoading={loading.cancel}
-      onGenerateQR={() => setTripState({ ...tripState, isGeneratingQR: true })}
+      onGenerateQR={() => setTripState({ isGeneratingQR: true })}
       onCancelTrip={cancelTrip}
-      onHideQR={() => setTripState({ ...tripState, isGeneratingQR: false })}
+      onHideQR={() => setTripState({ isGeneratingQR: false })}
       onLogout={handleLogout}
     />
   );

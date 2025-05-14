@@ -6,19 +6,19 @@ import Image from "next/image";
 
 interface AuthFormProps {
   plateNumber: string;
-  imeiLastDigits: string;
+  password: string;
   isLoading: boolean;
   onPlateChange: (value: string) => void;
-  onImeiChange: (value: string) => void;
+  onPasswordChange: (value: string) => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
 }
 
 export const AuthForm = ({
   plateNumber,
-  imeiLastDigits,
+  password,
   isLoading,
   onPlateChange,
-  onImeiChange,
+  onPasswordChange,
   onSubmit,
 }: AuthFormProps) => {
   return (
@@ -78,12 +78,12 @@ export const AuthForm = ({
               Código de acceso
             </label>
             <Input
-              id="imeiLastDigits"
-              value={imeiLastDigits}
-              onChange={(e) => onImeiChange(e.target.value)}
-              placeholder="Ej: 1234"
-              maxLength={4}
-              pattern="\d{4}"
+              id="password"
+              value={password}
+              onChange={(e) => onPasswordChange(e.target.value)}
+              placeholder="Ej: 12345678"
+              minLength={8}
+              pattern=".{8,}"
               required
               className="bg-white border-amber-300 h-12 text-base w-full"
             />

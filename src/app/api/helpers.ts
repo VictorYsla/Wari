@@ -1,9 +1,8 @@
 const isProduction = process.env.NODE_ENV === "production";
 
-
 export const baseURL = isProduction
   ? process.env.NEXT_BASE_URL
-  : process.env.NEXT_PUBLIC_BASE_URL
+  : process.env.NEXT_PUBLIC_BASE_URL;
 
 export const hawkBaseURL = isProduction
   ? process.env.NEXT_HAWK_BASE_URL
@@ -17,15 +16,22 @@ export const hawkEndParams = isProduction
   ? process.env.NEXT_HAWK_END_PARAMS
   : process.env.NEXT_PUBLIC_HAWK_END_PARAMS;
 
-
 export const hawkInitialGetAllParams = isProduction
   ? process.env.NEXT_HAWK_GET_ALL_INITAL_PARAMS
   : process.env.NEXT_PUBLIC_HAWK_GET_ALL_INITAL_PARAMS;
 
 export const hawkEndGetAllParams = isProduction
-? process.env.NEXT_HAWK_GET_ALL_END_PARAMS
-: process.env.NEXT_PUBLIC_HAWK_GET_ALL_END_PARAMS;
+  ? process.env.NEXT_HAWK_GET_ALL_END_PARAMS
+  : process.env.NEXT_PUBLIC_HAWK_GET_ALL_END_PARAMS;
 
-  export const googleMapsApiKey = isProduction
+export const googleMapsApiKey = isProduction
   ? process.env.NEXT_GOOGLE_MAPS_API_KEY
   : process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+export const clerkPublishableKey = isProduction
+  ? process.env.NEXT_CLERK_PUBLISHABLE_KEY
+  : process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+export const clerkSecretKey = isProduction
+  ? process.env.CLERK_SECRET_KEY
+  : process.env.CLERK_PUBLIC_SECRET_KEY;

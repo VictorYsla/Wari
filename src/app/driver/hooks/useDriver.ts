@@ -1,27 +1,27 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { DeviceObject, Trip } from "@/app/types/types";
+import { Trip } from "@/app/types/types";
 import useTripSocket from "@/hooks/useTripSocket";
+import { useAuth, useSignIn, useSignUp } from "@clerk/nextjs";
+import { useAppStore } from "@/hooks/useAppStore";
 
 export const useDriver = () => {
   const { toast } = useToast();
-  const isLogged = useRef(false);
 
-  // Estado de autenticación
-  const [authState, setAuthState] = useState({
-    plateNumber: "",
-    imeiLastDigits: "",
-    isAuthenticated: false,
-    vehicleDetails: null as DeviceObject | null,
-  });
+  const { signUp, setActive: setActiveRegister } = useSignUp();
+  const { signIn, setActive: setActiveLogin } = useSignIn();
+  const { signOut } = useAuth();
 
-  // Estado del viaje
-  const [tripState, setTripState] = useState({
-    activeTrip: null as Trip | null,
-    isGeneratingQR: false,
-  });
+  const plateNumber = useAppStore((state) => state.plateNumber);
+  const password = useAppStore((state) => state.password);
+  const vehicleDetails = useAppStore((state) => state.vehicleDetails);
+  const isAuthenticated = useAppStore((state) => state.isAuthenticated);
+  const setAuthState = useAppStore((state) => state.setAuthState);
 
-  // Estados de carga
+  const activeTrip = useAppStore((state) => state.activeTrip);
+  const isGeneratingQR = useAppStore((state) => state.isGeneratingQR);
+  const setTripState = useAppStore((state) => state.setTripState);
+
   const [loading, setLoading] = useState({
     auth: false,
     recharge: true,
@@ -29,17 +29,13 @@ export const useDriver = () => {
   });
 
   const { isConnected } = useTripSocket(
-    tripState.activeTrip?.id || "",
-    (trip: Trip) => {
-      setTripState((prev) => ({
-        ...prev,
-        activeTrip: trip,
-      }));
+    activeTrip?.id || "",
+    async (trip: Trip) => {
+      setTripState({ activeTrip: trip });
 
-      localStorage.setItem("tripId", trip.id); // actualiza localStorage
+      localStorage.setItem("tripId", trip.id);
 
-      // Crear nuevo viaje con manejo de errores
-      if (!trip.is_active && isLogged.current) {
+      if (!trip.is_active && useAppStore.getState().isAuthenticated) {
         toast({
           title: "QR expirado",
           description: "Se actualizará a un nuevo QR",
@@ -57,8 +53,7 @@ export const useDriver = () => {
     }
   );
 
-  // Función para buscar vehículo por placa
-  const findVehicleByPlate = async (plate: string, imeiLastDigits: string) => {
+  const findVehicleByPlate = async (plate: string) => {
     try {
       const response = await fetch("/api/search-vehicle", {
         method: "POST",
@@ -74,11 +69,6 @@ export const useDriver = () => {
         throw new Error(data.message || "Vehículo no encontrado");
       }
 
-      const last4Imei = data.vehicle.imei.slice(-4);
-      if (imeiLastDigits !== last4Imei) {
-        throw new Error("Los últimos 4 dígitos del IMEI no coinciden");
-      }
-
       return data.vehicle;
     } catch (error) {
       toast({
@@ -91,7 +81,6 @@ export const useDriver = () => {
     }
   };
 
-  // Función para crear un nuevo viaje
   const createTrip = async (imei: string) => {
     try {
       const response = await fetch("/api/register-trip", {
@@ -107,42 +96,36 @@ export const useDriver = () => {
 
       const { data } = await response.json();
 
-      setTripState((prev) => ({
-        ...prev,
-        tripId: data.id,
-        activeTrip: data,
-      }));
+      setTripState({ activeTrip: data });
 
       localStorage.setItem("tripId", data.id);
+
       return data.id;
     } catch (error) {
       throw error;
     }
   };
 
-  // Manejo de login
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading((prev) => ({ ...prev, auth: true }));
 
     try {
-      const vehicle = await findVehicleByPlate(
-        authState.plateNumber.trim(),
-        authState.imeiLastDigits.trim()
-      );
+      const vehicle = await findVehicleByPlate(plateNumber.trim());
 
       if (vehicle?.imei) {
-        const tripId = await createTrip(vehicle.imei);
+        const authResult = await handleAuthWithClerk(plateNumber, password);
 
-        setAuthState((prev) => ({
-          ...prev,
-          isAuthenticated: true,
-          vehicleDetails: vehicle,
-        }));
+        if (!authResult.success) {
+          throw new Error(authResult.error || "Error en autenticación");
+        }
+
+        setAuthState({ isAuthenticated: true, vehicleDetails: vehicle });
 
         localStorage.setItem("driverAuthenticated", "true");
-        localStorage.setItem("plate", authState.plateNumber.trim());
-        isLogged.current = true;
+        localStorage.setItem("plate", plateNumber.trim());
+
+        const tripId = await createTrip(vehicle.imei);
 
         toast({
           title: "Autenticación exitosa",
@@ -161,45 +144,19 @@ export const useDriver = () => {
     }
   };
 
-  // Manejo de logout
   const handleLogout = async () => {
     setLoading((prev) => ({ ...prev, auth: true }));
 
-    const isActive = tripState.activeTrip?.is_active;
-    const hasDestination = !!tripState.activeTrip?.destination;
-
     try {
-      isLogged.current = false;
-
-      if (tripState.activeTrip?.imei) {
-        await fetch("/api/stop-trip-monitoring", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ imei: tripState.activeTrip.imei }),
-        });
-
-        await fetch("/api/update-trip", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            id: tripState.activeTrip.id,
-            is_active: false,
-            grace_period_active: isActive && hasDestination ? true : false,
-            grace_period_end_time:
-              isActive && hasDestination
-                ? new Date(Date.now() + 10 * 60 * 1000).toISOString()
-                : null,
-          }),
-        });
-      }
-
       localStorage.removeItem("driverAuthenticated");
       localStorage.removeItem("tripId");
       localStorage.removeItem("plate");
 
+      await signOut();
+
       setAuthState({
         plateNumber: "",
-        imeiLastDigits: "",
+        password: "",
         isAuthenticated: false,
         vehicleDetails: null,
       });
@@ -227,22 +184,22 @@ export const useDriver = () => {
   const cancelTrip = async () => {
     setLoading({ ...loading, cancel: true });
 
-    const isActive = tripState.activeTrip?.is_active;
-    const hasDestination = !!tripState.activeTrip?.destination;
+    const isActive = activeTrip?.is_active;
+    const hasDestination = !!activeTrip?.destination;
 
     const stopMonitoringResponse = await fetch(`/api/stop-trip-monitoring`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ imei: tripState.activeTrip?.imei }), // Enviar el imei en el cuerpo de la solicitud
+      body: JSON.stringify({ imei: activeTrip?.imei }),
     });
 
     const updateResponse = await fetch(`/api/update-trip`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        id: tripState.activeTrip?.id, // ahora el id va en el body
+        id: activeTrip?.id,
         is_active: false,
         grace_period_active: isActive && hasDestination ? true : false,
         grace_period_end_time:
@@ -252,10 +209,60 @@ export const useDriver = () => {
       }),
     });
 
+    setTripState({ activeTrip: null });
+
+    toast({
+      title: "QR expirado",
+      description: "Se actualizará a un nuevo QR",
+    });
+
     setLoading({ ...loading, cancel: false });
   };
 
-  // Cargar estado inicial desde localStorage
+  const handleAuthWithClerk = async (plateNumber: string, password: string) => {
+    try {
+      const signInResult = await signIn?.create({
+        identifier: plateNumber.trim(),
+        password: password.trim(),
+      });
+
+      if (signInResult?.status === "complete" && setActiveLogin) {
+        await setActiveLogin({ session: signInResult.createdSessionId });
+        return { success: true, isNewUser: false };
+      }
+
+      return { success: false, error: "Login no completado" };
+    } catch (signInError) {
+      if (isClerkUserNotFoundError(signInError)) {
+        try {
+          const signUpResult = await signUp?.create({
+            username: plateNumber.trim(),
+            password: password.trim(),
+          });
+
+          if (signUpResult?.status === "complete" && setActiveRegister) {
+            // Actualizar metadata directamente (mejor que endpoint adicional)
+            // await signUpResult?.user?.update({
+            //   unsafeMetadata: {
+            //     vehiclePlate: vehicle.plate,
+            //     vehicleIMEI: vehicle.imei,
+            //     vehicleName: vehicle.name,
+            //     lastDigits: imeiLastDigits.trim()
+            //   }
+            // });
+
+            await setActiveRegister({ session: signUpResult.createdSessionId });
+            return { success: true, isNewUser: true };
+          }
+        } catch (signUpError) {
+          return { success: false, error: "Error en registro" };
+        }
+      }
+
+      throw signInError;
+    }
+  };
+
   useEffect(() => {
     const loadInitialState = async () => {
       const tripId = localStorage.getItem("tripId");
@@ -273,30 +280,24 @@ export const useDriver = () => {
           if (response.ok) {
             const { data } = await response.json();
 
-            setTripState((prev) => ({
-              ...prev,
-              tripId,
-              activeTrip: data,
-            }));
+            if (data.is_active) {
+              setTripState({ activeTrip: data });
+            } else {
+              createTrip(data.imei);
+            }
 
             if (plate) {
-              const vehicle = await findVehicleByPlate(
-                plate,
-                data.imei.slice(-4)
-              );
+              const vehicle = await findVehicleByPlate(plate);
               if (vehicle) {
-                setAuthState((prev) => ({
-                  ...prev,
+                setAuthState({
                   plateNumber: plate,
                   isAuthenticated: true,
                   vehicleDetails: vehicle,
-                }));
-                isLogged.current = true;
+                });
               }
             }
           }
         } catch (error) {
-          console.error("Error loading trip:", error);
           handleLogout();
         }
       }
@@ -306,18 +307,28 @@ export const useDriver = () => {
     loadInitialState();
   }, []);
 
+  const tripState = {
+    activeTrip,
+    isGeneratingQR,
+  };
+
+  const authState = {
+    plateNumber,
+    password,
+    isAuthenticated,
+    vehicleDetails,
+  };
+
   return {
-    // Estados
     authState,
     tripState,
     loading,
     isConnected,
+    activeTrip,
 
-    // Setters
     setAuthState,
     setTripState,
 
-    // Métodos
     handleLogin,
     handleLogout,
     findVehicleByPlate,
@@ -325,3 +336,12 @@ export const useDriver = () => {
     cancelTrip,
   };
 };
+
+function isClerkUserNotFoundError(error: any): boolean {
+  const notFoundCodes = [
+    "form_identifier_not_found",
+    "user_not_found",
+    "identifier_not_found",
+  ];
+  return notFoundCodes.includes(error?.errors?.[0]?.code);
+}

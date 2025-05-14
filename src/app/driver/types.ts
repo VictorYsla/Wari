@@ -2,7 +2,7 @@ import { DeviceObject, Trip } from "../types/types";
 
 export interface DriverAuthState {
   plateNumber: string;
-  imeiLastDigits: string;
+  password: string;
   isAuthenticated: boolean;
   vehicleDetails: DeviceObject | null;
 }
