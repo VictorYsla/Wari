@@ -4,6 +4,7 @@ import { googleMapsApiKey } from "./api/helpers";
 import { ClerkProvider } from "@clerk/nextjs";
 
 import "./globals.css";
+import "../styles/fonts.css";
 import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata = {
