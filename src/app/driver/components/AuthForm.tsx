@@ -73,7 +73,7 @@ export const AuthForm = ({
           </div>
         </div>
       </div>
-      <div className="mt-8 flex justify-center">
+      <div className="mt-16 flex justify-center">
         <button
           type="submit"
           className="w-full md:w-auto bg-wari-yellow hover:bg-amber-400 text-black text-[15px] font-montserrat font-bold py-3 px-8 rounded-4xl flex items-center justify-center gap-2 disabled:opacity-50 mt-8 md:mt-12"
