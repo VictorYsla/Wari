@@ -101,6 +101,7 @@ const config: Config = {
         "montserrat-regular": ["Montserrat-Regular", "sans-serif"],
         "montserrat-italic": ["Montserrat-Italic", "sans-serif"],
         "montserrat-bold": ["Montserrat-Bold", "sans-serif"],
+        montserrat: ["var(--font-montserrat)", "sans-serif"],
       },
     },
   },

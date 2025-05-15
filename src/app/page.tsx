@@ -10,14 +10,16 @@ export default function Home() {
           <div className="w-24 h-24 md:w-32 md:h-32 mb-10 relative">
             <Logo className="w-full h-full" />
           </div>
-          <p className="font-montserrat-regular text-sm">Bienvenido a Wari,</p>
-          <p className="font-montserrat-regular text-sm">
-            <span className="font-montserrat-bold">
+          <p className="font-montserrat font-normal text-sm">
+            Bienvenido a Wari,
+          </p>
+          <p className="font-montserrat font-normal text-sm">
+            <span className="font-montserrat font-bold">
               seguimiento en tiempo real{" "}
             </span>
             de tu
           </p>
-          <p className="font-montserrat-regular text-sm">
+          <p className="font-montserrat font-normal text-sm">
             vehículo de transporte.
           </p>
         </div>
@@ -28,17 +30,19 @@ export default function Home() {
               <div className="w-14 h-14 md:w-24 md:h-24 lg:w-32 lg:h-32 relative">
                 <Passenger className="w-full h-full" />
               </div>
-              <h2 className="font-montserrat-bold text-[17px] ">Pasajero</h2>
+              <h2 className="font-montserrat font-bold text-[17px] ">
+                Pasajero
+              </h2>
             </div>
             <div className="text-center">
-              <p className="font-montserrat-regular text-sm">
+              <p className="font-montserrat font-normal text-sm">
                 Escanea un código QR para seguir la
               </p>
-              <p className="font-montserrat-regular text-sm">
+              <p className="font-montserrat font-normal text-sm">
                 ubicación del vehículo
               </p>
               <a href="/passenger" className="block mt-4">
-                <button className="w-full bg-black hover:bg-[#3a3426] text-white py-4 rounded-4xl text-[15px] font-montserrat-bold md:text-lg">
+                <button className="w-full bg-black hover:bg-[#3a3426] text-white py-4 rounded-4xl text-[15px] font-montserrat font-bold md:text-lg">
                   Acceder como pasajero
                 </button>
               </a>
@@ -50,17 +54,19 @@ export default function Home() {
               <div className="w-14 h-14 md:w-24 md:h-24 lg:w-32 lg:h-32 relative">
                 <Driver className="w-full h-full" />
               </div>
-              <h2 className="font-montserrat-bold text-[17px] ">Conductor</h2>
+              <h2 className="font-montserrat font-bold text-[17px] ">
+                Conductor
+              </h2>
             </div>
             <div className="text-center">
-              <p className="font-montserrat-regular text-sm">
+              <p className="font-montserrat font-normal text-sm">
                 Genera un código QR para compartir
               </p>
-              <p className="font-montserrat-regular text-sm">
+              <p className="font-montserrat font-normal text-sm">
                 la ubicación de tu vehículo
               </p>
               <a href="/driver" className="block mt-4">
-                <button className="w-full bg-black hover:bg-[#3a3426] text-white py-4 rounded-4xl text-[15px] font-montserrat-bold md:text-lg">
+                <button className="w-full bg-black hover:bg-[#3a3426] text-white py-4 rounded-4xl text-[15px] font-montserrat font-bold md:text-lg">
                   Acceder como conductor
                 </button>
               </a>

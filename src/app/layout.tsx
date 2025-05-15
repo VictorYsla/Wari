@@ -7,6 +7,15 @@ import "./globals.css";
 import "../styles/fonts.css";
 import { ThemeProvider } from "@/components/theme-provider";
 
+import { Montserrat } from "next/font/google";
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-montserrat",
+});
+
 export const metadata = {
   title: "Wari - Seguimiento de Vehículos",
   description:
@@ -20,7 +29,7 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <ClerkProvider>
-      <html lang="es" suppressHydrationWarning>
+      <html lang="es" className={montserrat.variable} suppressHydrationWarning>
         <head>
           <link rel="icon" href="logo.jpeg" sizes="any" />
           <script
