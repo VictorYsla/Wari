@@ -10,16 +10,16 @@ export default function Home() {
           <div className="w-24 h-24 md:w-32 md:h-32 mb-10 relative">
             <Logo className="w-full h-full" />
           </div>
-          <p className="font-montserrat font-normal text-sm">
+          <p className="font-montserrat font-normal text-sm leading-4">
             Bienvenido a Wari,
           </p>
-          <p className="font-montserrat font-normal text-sm">
+          <p className="font-montserrat font-normal text-sm leading-4">
             <span className="font-montserrat font-bold">
               seguimiento en tiempo real{" "}
             </span>
             de tu
           </p>
-          <p className="font-montserrat font-normal text-sm">
+          <p className="font-montserrat font-normal text-sm leading-4">
             vehículo de transporte.
           </p>
         </div>
@@ -35,10 +35,10 @@ export default function Home() {
               </h2>
             </div>
             <div className="text-center">
-              <p className="font-montserrat font-normal text-sm">
+              <p className="font-montserrat font-normal text-sm leading-4">
                 Escanea un código QR para seguir la
               </p>
-              <p className="font-montserrat font-normal text-sm">
+              <p className="font-montserrat font-normal text-sm leading-4">
                 ubicación del vehículo
               </p>
               <a href="/passenger" className="block mt-4">
@@ -59,10 +59,10 @@ export default function Home() {
               </h2>
             </div>
             <div className="text-center">
-              <p className="font-montserrat font-normal text-sm">
+              <p className="font-montserrat font-normal text-sm leading-4">
                 Genera un código QR para compartir
               </p>
-              <p className="font-montserrat font-normal text-sm">
+              <p className="font-montserrat font-normal text-sm leading-4">
                 la ubicación de tu vehículo
               </p>
               <a href="/driver" className="block mt-4">
