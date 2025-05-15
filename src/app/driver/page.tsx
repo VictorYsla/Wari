@@ -4,7 +4,6 @@ import { useDriver } from "./hooks/useDriver";
 import { AuthForm } from "./components/AuthForm";
 import { DriverPanel } from "./components/DriverPanel";
 import { LoadingView } from "@/components/LoadingView";
-import { Card } from "@/components/ui/card";
 import { useUser } from "@clerk/nextjs";
 
 export default function DriverPage() {
@@ -28,27 +27,29 @@ export default function DriverPage() {
 
   if (!isSignedIn) {
     return (
-      <div className="min-h-screen bg-[#fffbeb] flex flex-col items-center justify-center px-4 py-8">
-        <div className="w-full max-w-md">
-          <Card className="border-amber-300 border-2 bg-[#fffbeb] p-6 shadow-sm">
-            <h1 className="text-2xl font-bold mb-2 text-[#2a2416]">
+      <div className="min-h-screen bg-wari-gray flex flex-col items-center justify-center px-4 py-8">
+        <div className="bg-white rounded-2xl px-4 py-8 w-full max-w-screen-md">
+          <div className="border-wari-yellow border-2 bg-white px-4 py-8 shadow-sm rounded-lg flex flex-col items-center text-center">
+            <h1 className="font-montserrat font-bold text-xl mb-6">
               Acceso de Conductor
             </h1>
-            <p className="text-gray-700 mb-6">
-              Ingresa la placa del vehículo y el código de acceso
+            <p className="font-montserrat font-normal text-sm leading-4">
+              Ingresa la placa del vehículo y el
             </p>
-            {/* Placa del vehículo */}
-            <div className="mb-6">
-              <AuthForm
-                plateNumber={authState.plateNumber}
-                password={authState.password}
-                isLoading={loading.auth}
-                onPlateChange={(value) => setAuthState({ plateNumber: value })}
-                onPasswordChange={(value) => setAuthState({ password: value })}
-                onSubmit={handleLogin}
-              />
-            </div>
-          </Card>
+            <p className="font-montserrat font-normal text-sm leading-4 mb-12">
+              código de acceso.
+            </p>
+
+            {/* <!-- Placa del vehículo --> */}
+            <AuthForm
+              plateNumber={authState.plateNumber}
+              password={authState.password}
+              isLoading={loading.auth}
+              onPlateChange={(value) => setAuthState({ plateNumber: value })}
+              onPasswordChange={(value) => setAuthState({ password: value })}
+              onSubmit={handleLogin}
+            />
+          </div>
         </div>
       </div>
     );

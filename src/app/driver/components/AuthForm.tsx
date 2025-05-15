@@ -1,8 +1,7 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Loader2, ShieldCheck } from "lucide-react";
-import Image from "next/image";
+import { Loader2 } from "lucide-react";
+import Vehicle from "@/assets/svgs/icon-vehicle.svg";
+import Key from "@/assets/svgs/icon-key.svg";
+import Check from "@/assets/svgs/icon-button.svg";
 
 interface AuthFormProps {
   plateNumber: string;
@@ -22,91 +21,77 @@ export const AuthForm = ({
   onSubmit,
 }: AuthFormProps) => {
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <div className="flex flex-row items-stretch gap-3">
-          {/* Imagen que se estira */}
-          <div className="w-10 flex-shrink-0 flex items-center">
-            <Image
-              src={"/car-login.png"}
-              alt="Icono de vehículo"
-              width={40}
-              height={40}
-              className="object-contain h-full"
-            />
+    <form onSubmit={onSubmit} className="w-full">
+      <div className="flex flex-col md:flex-row md:gap-6">
+        {/* Bloque Placa */}
+        <div className="flex flex-row w-full md:w-1/2 gap-3 items-end mb-8 md:mb-0">
+          <div className="w-10 flex-shrink-0 flex">
+            <Vehicle className="w-full h-full" />
           </div>
-
-          {/* Label + Input */}
-          <div className="flex flex-col flex-1">
+          <div className="flex flex-col flex-1 w-full">
             <label
               htmlFor="plateNumber"
-              className="font-medium text-[#2a2416] mb-1"
+              className="font-montserrat font-bold text-[15px] text-left"
             >
               Placa del vehículo
             </label>
-            <Input
+            <input
               id="plateNumber"
+              type="text"
               value={plateNumber}
               onChange={(e) => onPlateChange(e.target.value)}
               placeholder="Ej: ABC-123"
               required
-              className="bg-white border-amber-300 h-12 text-base w-full"
+              className="bg-white border-2 text-sm border-wari-yellow h-12 font-montserrat font-normal w-full rounded-4xl placeholder-black p-2 focus:outline-none"
             />
           </div>
         </div>
-      </div>
 
-      <div className="space-y-2">
-        <div className="flex flex-row items-stretch gap-3">
-          {/* Imagen que se estira */}
-          <div className="w-10 flex-shrink-0 flex items-center">
-            <Image
-              src={"/key-login.png"}
-              alt="Icono de vehículo"
-              width={40}
-              height={40}
-              className="object-contain h-full"
-            />
+        {/* Bloque Password */}
+        <div className="flex flex-row w-full md:w-1/2 gap-3 items-end">
+          <div className="w-10 flex-shrink-0 flex">
+            <Key className="w-full h-full" />
           </div>
-
-          {/* Label + Input */}
-          <div className="flex flex-col flex-1">
+          <div className="flex flex-col flex-1 w-full">
             <label
-              htmlFor="plateNumber"
-              className="flex items-center gap-3 font-medium text-[#2a2416] mb-2"
+              htmlFor="password"
+              className="font-montserrat font-bold text-[15px] text-left"
             >
               Código de acceso
             </label>
-            <Input
+            <input
               id="password"
+              type="password"
               value={password}
               onChange={(e) => onPasswordChange(e.target.value)}
               placeholder="Ej: 12345678"
               minLength={8}
               pattern=".{8,}"
               required
-              className="bg-white border-amber-300 h-12 text-base w-full"
+              className="bg-white border-2 text-sm border-wari-yellow h-12 w-full font-montserrat font-normal rounded-4xl placeholder-black p-2 focus:outline-none"
             />
           </div>
         </div>
       </div>
-      <Button
-        type="submit"
-        className="w-full bg-amber-300 hover:bg-amber-400 text-black py-6 flex items-center justify-center gap-2"
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Verificando...
-          </>
-        ) : (
-          <>
-            <ShieldCheck className="mr-2 h-4 w-4" />
-            Verificar y acceder
-          </>
-        )}
-      </Button>
+      <div className="mt-8 flex justify-center">
+        <button
+          type="submit"
+          className="w-full md:w-auto bg-wari-yellow hover:bg-amber-400 text-black text-[15px] font-montserrat font-bold py-3 px-8 rounded-4xl flex items-center justify-center gap-2 disabled:opacity-50 mt-8 md:mt-12"
+          disabled={isLoading || !password || !plateNumber}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Verificando...
+            </>
+          ) : (
+            <>
+              <Check className="h-6 w-6" />
+              Verificar y acceder
+            </>
+          )}
+        </button>
+      </div>
     </form>
   );
 };
