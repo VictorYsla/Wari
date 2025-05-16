@@ -220,7 +220,6 @@ export const useDriver = () => {
   };
 
   const handleAuthWithClerk = async (plateNumber: string, password: string) => {
-    console.log({ plateNumber, password });
     try {
       const signInResult = await signIn?.create({
         identifier: plateNumber.trim(),
@@ -234,7 +233,6 @@ export const useDriver = () => {
 
       return { success: false, error: "Login no completado" };
     } catch (signInError) {
-      console.log({ signInError });
       if (isClerkUserNotFoundError(signInError)) {
         try {
           const signUpResult = await signUp?.create({
@@ -257,8 +255,6 @@ export const useDriver = () => {
             return { success: true, isNewUser: true };
           }
         } catch (signUpError) {
-          console.log({ signUpError });
-
           return { success: false, error: "Error en registro" };
         }
       }

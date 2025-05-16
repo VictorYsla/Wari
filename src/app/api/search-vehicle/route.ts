@@ -74,8 +74,6 @@ export async function POST(request: Request) {
       }
     }
 
-    console.log({ foundVehicle });
-
     if (foundVehicle) {
       return NextResponse.json({
         success: true,
