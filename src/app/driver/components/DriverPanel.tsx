@@ -39,10 +39,16 @@ export const DriverPanel = ({
           </h1>
           <p className="font-montserrat font-normal text-sm leading-4">
             {" "}
-            Código QR para compartir la ubicación
+            {`${
+              isGeneratingQR
+                ? "Código QR para compartir la ubicación"
+                : "Muestra el código QR para compartir la "
+            }`}
           </p>
           <p className="font-montserrat font-normal text-sm leading-4 mb-16">
-            de tu vehículo
+            {`${
+              isGeneratingQR ? "de tu vehículo" : "ubicación de tu vehículo"
+            }`}
           </p>
 
           {/* Detalles del vehículo */}
