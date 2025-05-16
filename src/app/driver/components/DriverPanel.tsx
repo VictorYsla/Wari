@@ -60,7 +60,7 @@ export const DriverPanel = ({
                 </div>
                 Detalles del vehículo:
               </h2>
-              <div className="space-y-2">
+              <div className="space-y-0">
                 <p className="font-montserrat font-bold text-sm">
                   Nombre:{" "}
                   <span className="font-montserrat font-normal text-sm">
