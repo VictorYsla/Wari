@@ -14,29 +14,25 @@ export function QRCodeGenerator({
   isActive,
   destination,
 }: QRCodeGeneratorProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const divRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (canvasRef.current && vehicleKey) {
-      QRCode.toCanvas(
-        canvasRef.current,
-        JSON.stringify({ tripId: vehicleKey, isActive, destination }),
-        {
-          width: 250,
-          margin: 1,
-          color: {
-            dark: "#000000",
-            light: "#ffffff",
-          },
-        },
-        (error) => {}
-      );
-    }
-  }, [vehicleKey, isActive]);
+    const generateQR = async () => {
+      if (divRef.current && vehicleKey) {
+        const svgString = await QRCode.toString(
+          JSON.stringify({ tripId: vehicleKey, isActive, destination }),
+          { type: "svg", margin: 2, color: { dark: "#000", light: "#fff" } }
+        );
+        divRef.current.innerHTML = svgString;
+      }
+    };
+
+    generateQR();
+  }, [vehicleKey, isActive, destination]);
 
   return (
-    <div className="flex flex-col items-center justify-center p-4 bg-white rounded-lg">
-      <canvas ref={canvasRef} />
+    <div className="flex justify-center items-center p-4">
+      <div ref={divRef} className="w-[190px] h-[190px]" />
     </div>
   );
 }

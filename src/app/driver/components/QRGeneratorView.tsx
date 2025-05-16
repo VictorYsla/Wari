@@ -1,8 +1,9 @@
-import { Button } from "@/components/ui/button";
 import { QRCodeGenerator } from "@/components/qr-code-generator";
 import { Loader2, XCircle } from "lucide-react";
 import { convertUtcToDeviceTime } from "@/helpers/time";
 import { Trip } from "@/app/types/types";
+import CloseEye from "@/assets/svgs/icon-dont-show.svg";
+import QR from "@/assets/svgs/icon-qr.svg";
 
 interface QRGeneratorViewProps {
   activeTrip: Trip | null;
@@ -20,57 +21,88 @@ export const QRGeneratorView = ({
   onHideQR,
 }: QRGeneratorViewProps) => {
   return (
-    <div className="flex flex-col items-center space-y-4">
-      {activeTrip && activeTrip.is_active ? (
-        <div className="p-4 bg-white border-amber-300 border rounded-lg w-full mb-2">
-          <h2 className="font-bold text-lg mb-2">Estado del QR</h2>
-          {activeTrip.destination ? (
-            <div className="mb-6">
-              <div className="space-y-1">
-                <p>
-                  <span className="font-bold">Destino:</span>{" "}
-                  {JSON.parse(activeTrip.destination).address}
-                </p>
-                <p>
-                  <span className="font-bold">Iniciado:</span>{" "}
-                  {convertUtcToDeviceTime(activeTrip.start_date)}
-                </p>
+    <div className="w-full">
+      <div className="bg-wari-gray rounded-3xl pt-6 pb-4 px-6 w-full">
+        {activeTrip && activeTrip.is_active ? (
+          <div className="text-left mb-8">
+            <h2 className="font-montserrat font-bold text-sm flex items-center gap-2 mb-2">
+              <QR className="w-5 h-5" />
+              Estado del QR
+            </h2>
+            {activeTrip.destination ? (
+              <div className="mb-6">
+                <div className="space-y-1">
+                  <p className="font-montserrat font-bold text-sm">
+                    Destino:{" "}
+                    <span className="font-montserrat font-normal text-sm">
+                      {JSON.parse(activeTrip.destination).address}
+                    </span>
+                  </p>
+                  <p className="font-montserrat font-bold text-sm">
+                    Iniciado:{" "}
+                    <span className="font-montserrat font-normal text-sm">
+                      {convertUtcToDeviceTime(activeTrip.start_date)}
+                    </span>
+                  </p>
+                </div>
               </div>
-            </div>
-          ) : (
-            <p>QR activo esperando que un pasajero defina el destino.</p>
-          )}
-        </div>
-      ) : (
-        <div className="p-4 bg-white border-amber-300 border rounded-lg w-full mb-2">
-          <p className="text-sm text-center">QR disponible. Actualizando...</p>
-        </div>
-      )}
+            ) : (
+              <>
+                <p className="font-montserrat font-normal text-sm leading-4">
+                  QR activo esperando que un pasajero
+                </p>
+                <p className="font-montserrat font-normal text-sm leading-4">
+                  defina el destino.
+                </p>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="text-left mb-8">
+            <h2 className="font-montserrat font-bold text-sm flex items-center gap-2 mb-2">
+              <QR className="w-5 h-5" />
+              Estado del QR
+            </h2>
+            <p className="text-sm font-montserrat">
+              QR no disponible. Actualizando...
+            </p>
+          </div>
+        )}
 
-      <QRCodeGenerator
-        vehicleKey={activeTrip?.id || ""}
-        isActive={activeTrip?.is_active || false}
-        destination={activeTrip?.destination}
-      />
+        <QRCodeGenerator
+          vehicleKey={activeTrip?.id || ""}
+          isActive={activeTrip?.is_active || false}
+          destination={activeTrip?.destination}
+        />
 
-      <p className="text-center text-sm text-gray-700 max-w-xs">
-        Comparte este código QR con los pasajeros para que puedan seguir tu
-        ubicación. El código QR expirará automáticamente al llegar al destino.
-      </p>
-
-      <div className="flex space-x-2 w-full">
-        <Button
-          variant="outline"
-          className="w-full bg-amber-300 hover:bg-amber-400 text-black py-6 flex items-center justify-center gap-2"
-          onClick={onHideQR}
-        >
-          Ocultar código QR
-        </Button>
+        <p className="font-montserrat font-normal text-xs leading-4">
+          Comparte este código QR con los
+        </p>
+        <p className="font-montserrat font-normal text-xs leading-4">
+          pasajeros para que puedan seguir tu
+        </p>
+        <p className="font-montserrat font-normal text-xs leading-4">
+          ubicación. El código QR expirará
+        </p>
+        <p className="font-montserrat font-normal text-xs leading-4">
+          automáticamente al llegar al destino.
+        </p>
       </div>
 
-      <div className="flex space-x-2 w-full">
-        <Button
-          className="w-full bg-orange-500 hover:bg-orange-600 text-white py-6 flex items-center justify-center gap-2"
+      {/* Contenedor centrado de botones */}
+      <div className="flex flex-col items-center md:flex-row md:justify-center md:gap-6">
+        <button
+          className="w-full md:w-80 bg-wari-yellow hover:bg-amber-400 text-black text-[15px] font-montserrat font-bold py-3 px-8 rounded-4xl flex items-center justify-center gap-2 disabled:opacity-50 mt-4 md:mt-12"
+          onClick={onHideQR}
+        >
+          <>
+            <CloseEye className="w-6 h-6" />
+            Ocultar código QR
+          </>
+        </button>
+
+        <button
+          className="w-full md:w-80 bg-wari-red hover:bg-red-400 text-white text-[15px] font-montserrat font-bold py-3 px-8 rounded-4xl flex items-center justify-center gap-2 disabled:opacity-50 mt-4 md:mt-12"
           onClick={onCancelTrip}
           disabled={isCancelLoading || !isConnected || !activeTrip?.id}
         >
@@ -81,11 +113,11 @@ export const QRGeneratorView = ({
             </>
           ) : (
             <>
-              <XCircle className="w-5 h-5" />
+              <XCircle className="w-6 h-6" />
               Cancelar viaje
             </>
           )}
-        </Button>
+        </button>
       </div>
     </div>
   );
