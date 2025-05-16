@@ -101,7 +101,7 @@ export const DriverPanel = ({
           <button
             className={clsx(
               "flex items-center justify-center gap-2",
-              "w-full md:w-auto py-3 px-8 mt-8 md:mt-12 rounded-4xl text-[15px] font-montserrat font-bold",
+              "w-full md:w-auto py-3 px-8 mt-4 md:mt-12 rounded-4xl text-[15px] font-montserrat font-bold",
               isGeneratingQR
                 ? "bg-[#2a2416] hover:bg-[#3a3426] text-white"
                 : "bg-wari-red hover:bg-amber-400 text-white",
