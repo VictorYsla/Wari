@@ -33,7 +33,7 @@ export const QRScanView = ({
 }: QRScanViewProps) => {
   return (
     <div className="min-h-screen bg-wari-gray flex flex-col items-center px-4 py-8 md:py-12">
-      <div className="bg-white rounded-2xl px-1 w-full max-w-screen-md py-8 flex flex-col items-center">
+      <div className="bg-white rounded-2xl px-1 w-full max-w-screen-md pb-8 pt-16 flex flex-col items-center">
         <div className="flex flex-col items-center justify-center w-full max-w-md md:max-w-xl md:mt-28 px-4">
           <div className="text-center mb-6">
             <h1 className="font-montserrat font-bold text-xl text-center">
@@ -54,9 +54,10 @@ export const QRScanView = ({
             </h1>
 
             {!scannedTripId && (
-              <p className="font-montserrat font-normal text-base">
-                Escanea el código QR e ingresa el destino para iniciar el
-                seguimiento
+              <p className="font-montserrat font-normal text-base mt-4 leading-4">
+                Escanea el código QR e ingresa el
+                <br />
+                destino para iniciar el seguimiento
               </p>
             )}
           </div>
@@ -80,7 +81,7 @@ export const QRScanView = ({
               <div className="flex flex-col w-full items-center">
                 <button
                   onClick={onResetScan}
-                  className="w-full mt-4 md:w-80 bg-wari-black hover:bg-blue-300 text-white text-[15px] font-montserrat font-bold py-3 px-8 rounded-4xl flex items-center justify-center gap-2 disabled:opacity-50 md:mt-12"
+                  className="w-full mt-4 md:w-80 bg-wari-black hover:bg-black-300 text-white text-[15px] font-montserrat font-bold py-3 px-8 rounded-4xl flex items-center justify-center gap-2 disabled:opacity-50 md:mt-12"
                 >
                   <WhiteScanner className="h-6 w-6" />
                   Volver a escanear
@@ -90,9 +91,10 @@ export const QRScanView = ({
           )}
 
           {!scannedTripId && (
-            <p className="text-gray-700 text-sm md:text-base text-center max-w-xs mt-6">
-              Apunta la cámara al código QR del vehículo para iniciar el
-              seguimiento
+            <p className="font-montserrat font-normal text-sm leading-4 mt-10">
+              Apunta la cámara al código QR del
+              <br />
+              vehículo para iniciar el seguimiento.
             </p>
           )}
         </div>
