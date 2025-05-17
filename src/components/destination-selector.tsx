@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { MapPin, Search, X } from "lucide-react";
+import { Loader2, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import CircleBlackCheck from "@/assets/svgs/icon-circle-black-check.svg";
+import DestinationCircle from "@/assets/svgs/icon-destination.svg";
+import MagnificanGlasses from "@/assets/svgs/icon-magni-glass.svg";
+import Close from "@/assets/svgs/icon-close.svg";
+import MapPinYellow from "@/assets/svgs/icon-mappin-yellow.svg";
+import Rocket from "@/assets/svgs/icon-rocket.svg";
 
 declare global {
   interface Window {
@@ -22,12 +24,22 @@ export interface Destination {
 
 interface DestinationSelectorProps {
   onSelect: (destination: Destination) => void;
+  destination: {
+    address: string;
+    lat: number;
+    lng: number;
+  } | null;
   initialAddress?: string;
+  onStartTracking: () => void;
+  isButtonLoading: boolean;
 }
 
 export function DestinationSelector({
   onSelect,
   initialAddress = "",
+  destination,
+  onStartTracking,
+  isButtonLoading,
 }: DestinationSelectorProps) {
   const [address, setAddress] = useState(initialAddress);
   const [coordinates, setCoordinates] = useState<{
@@ -326,25 +338,27 @@ export function DestinationSelector({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full">
       <div className="space-y-2">
         <div className="flex items-center mb-2">
-          <MapPin className="mr-2 h-5 w-5" />
-          <h2 className="text-lg font-semibold">Destino del viaje</h2>
+          <DestinationCircle className="mr-2 h-5 w-5" />
+          <h2 className="font-montserrat font-bold text-sm">
+            Destino del viaje
+          </h2>
         </div>
-        <div className="relative">
+        <div className="relative w-full">
           <div className="flex items-center space-x-2">
             <div className="relative flex-1">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <MagnificanGlasses className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
               </div>
-              <Input
+              <input
                 id="destination"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 type="text"
                 placeholder="Buscar dirección..."
-                className="pl-9 pr-9 bg-white dark:bg-gray-800"
+                className="bg-white border-2 text-sm border-wari-black h-12 w-full font-montserrat font-normal rounded-4xl placeholder-black py-2 px-8 focus:outline-none"
                 disabled={isLoading}
               />
               {address && (
@@ -353,28 +367,23 @@ export function DestinationSelector({
                   onClick={clearSearch}
                   className="absolute inset-y-0 right-0 flex items-center pr-3"
                 >
-                  <X className="h-4 w-4 text-muted-foreground hover:text-foreground " />
+                  <Close className="h-4 w-4 text-muted-foreground hover:text-foreground " />
                 </button>
               )}
             </div>
-            <Button
-              type="button"
-              variant={isMapVisible ? "default" : "outline"}
-              size="icon"
-              onClick={getCurrentLocation}
-            >
-              <MapPin className="h-4 w-4" />
-            </Button>
+            <button type="button" onClick={getCurrentLocation}>
+              <MapPinYellow className="h-10 w-10" />
+            </button>
           </div>
 
           {/* Search results dropdown */}
           {showResults && searchResults.length > 0 && (
-            <div className="absolute z-10 mt-1 w-full bg-background border rounded-md shadow-lg">
+            <div className="absolute z-10 mt-1 w-full bg-background border rounded-3xl shadow-lg">
               <ul className="py-1 max-h-60 overflow-auto">
                 {searchResults.map((result) => (
                   <li
                     key={result.place_id}
-                    className="px-4 py-2 hover:bg-muted cursor-pointer text-sm"
+                    className="px-4 py-2 hover:bg-muted cursor-pointer font-montserrat font-no text-sm"
                     onClick={() =>
                       handleSelectPlace(result.place_id, result.description)
                     }
@@ -393,26 +402,49 @@ export function DestinationSelector({
 
       {/* Map */}
       {isMapVisible && (
-        <Card className="p-0 overflow-hidden border border-black dark:border-gray-700 rounded-md">
+        <div className="p-0 overflow-hidden border-2 border-black dark:border-gray-700 rounded-3xl">
           <div
             ref={mapRef}
             className="w-full h-[250px] border-b border-black dark:border-gray-700 overflow-hidden"
           />
-          <div className="p-3 bg-muted/30 text-xs text-muted-foreground border-t border-black dark:border-gray-700">
-            Haz clic en el mapa para seleccionar una ubicación o arrastra el
-            marcador para ajustar.
+          <div className="p-3  text-xs font-montserrat font-normal border-t border-black dark:border-gray-700">
+            <p>
+              Haz clic en el mapa para seleccionar una
+              <br />
+              ubicación o arrastra el marcador para ajustar.
+            </p>
           </div>
-        </Card>
+        </div>
       )}
 
-      <Button
-        type="button"
-        className="w-full bg-amber-300 hover:bg-amber-400 text-black dark:bg-amber-600 dark:hover:bg-amber-700 dark:text-white py-6"
-        onClick={handleConfirmDestination}
-        disabled={!coordinates || isLoading}
-      >
-        Confirmar destino
-      </Button>
+      <div className="w-full  max-w-screen-md mx-auto flex flex-col items-center md:flex-row md:justify-center md:gap-6">
+        <button
+          className="w-full md:w-80 md:mx-auto bg-wari-yellow hover:bg-amber-400 text-black text-[15px] font-montserrat font-bold py-3 px-8 rounded-4xl flex items-center justify-center gap-2 disabled:opacity-50 mt-4 md:mt-12"
+          onClick={handleConfirmDestination}
+          disabled={!coordinates || isLoading}
+        >
+          <CircleBlackCheck className="h-6 w-6" />
+          Confirmar destino
+        </button>
+
+        <button
+          className="w-full md:w-80 md:mx-auto bg-wari-blue hover:bg-blue-400 text-white text-[15px] font-montserrat font-bold py-3 px-8 rounded-4xl flex items-center justify-center gap-2 disabled:opacity-50 mt-4 md:mt-12"
+          onClick={onStartTracking}
+          disabled={!destination}
+        >
+          {isButtonLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Iniciando...
+            </>
+          ) : (
+            <>
+              <Rocket className="h-6 w-6" />
+              Iniciar seguimiento
+            </>
+          )}
+        </button>
+      </div>
     </div>
   );
 }
