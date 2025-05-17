@@ -1,6 +1,6 @@
 import { QRCodeGenerator } from "@/components/qr-code-generator";
 import { Loader2, XCircle } from "lucide-react";
-import { convertUtcToDeviceTime } from "@/helpers/time";
+import { convertUtcToDeviceDate } from "@/helpers/time";
 import { Trip } from "@/app/types/types";
 import CloseEye from "@/assets/svgs/icon-dont-show.svg";
 import QR from "@/assets/svgs/icon-qr.svg";
@@ -41,7 +41,7 @@ export const QRGeneratorView = ({
                   <p className="font-montserrat font-bold text-sm">
                     Iniciado:{" "}
                     <span className="font-montserrat font-normal text-sm">
-                      {convertUtcToDeviceTime(activeTrip.start_date)}
+                      {convertUtcToDeviceDate(activeTrip.start_date)}
                     </span>
                   </p>
                 </div>

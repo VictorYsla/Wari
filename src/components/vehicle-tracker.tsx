@@ -11,7 +11,14 @@ import {
 } from "react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { MapPin, Clock, Navigation } from "lucide-react";
+import {
+  MapPin,
+  Clock,
+  Navigation,
+  RefreshCcw,
+  Loader2,
+  Share2,
+} from "lucide-react";
 import { useJsApiLoader } from "@react-google-maps/api";
 import type { Destination } from "./destination-selector";
 import { googleMapsApiKey } from "@/app/api/helpers";
@@ -21,6 +28,9 @@ import { Button } from "./ui/button";
 interface VehicleTrackerProps {
   vehicleKey: string;
   destination?: Destination | null;
+  isShareDisable: boolean;
+  isShareLoading: boolean;
+  onShareTracking: () => void;
   setIsMapLoaded: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -34,7 +44,7 @@ interface LocationData {
 const mapContainerStyle = {
   width: "100%",
   height: "300px",
-  borderRadius: "0.5rem",
+  borderRadius: "1.5rem",
   border: "1px solid black", // ← aquí agregas el borde negro
 };
 
@@ -48,6 +58,9 @@ declare global {
 export function VehicleTracker({
   vehicleKey,
   destination,
+  isShareDisable,
+  isShareLoading,
+  onShareTracking,
   setIsMapLoaded,
 }: VehicleTrackerProps) {
   const [location, setLocation] = useState<LocationData | null>(null);
@@ -120,6 +133,7 @@ export function VehicleTracker({
     } catch (err) {
       setError("Error al obtener la ubicación del vehículo");
       toast({
+        //Mejorar esto
         title: "Error",
         description:
           "No se pudo obtener la ubicación del vehículo. Intenta de nuevo más tarde.",
@@ -278,40 +292,68 @@ export function VehicleTracker({
       </div>
 
       {location && (
-        <Card className="p-4">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm">
-                {location.address ||
-                  `${location.latitude.toFixed(
-                    6
-                  )}, ${location.longitude.toFixed(6)}`}
-              </p>
-            </div>
-            {destination && (
-              <div className="flex items-center gap-2">
-                <Navigation className="h-4 w-4 text-muted-foreground" />
-                <p className="text-sm">Destino: {destination.address}</p>
-              </div>
-            )}
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm">
-                Última actualización:{" "}
-                {convertUtcToDeviceTime(location.timestamp)}
-              </p>
-            </div>
+        <div className="dark:bg-gray-800 px-4">
+          <div className="flex items-center gap-2">
+            <MapPin className="h-6 w-6 stroke-[2.5] text-black" />
+            <p className="font-montserrat font-normal text-sm">
+              {location.address ||
+                `${location.latitude.toFixed(6)}, ${location.longitude.toFixed(
+                  6
+                )}`}
+            </p>
           </div>
-        </Card>
+
+          {destination && (
+            <div className="flex items-center gap-2 my-2">
+              <Navigation className="h-6 w-6 stroke-[2.5] text-black" />
+              <p className="font-montserrat font-bold text-sm w-[60%] leading-4">
+                Destino:{" "}
+                <span className="font-montserrat font-normal text-sm leading-4">
+                  {destination.address}
+                </span>
+              </p>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2">
+            <Clock className="h-6 w-6 stroke-[2.5] text-black" />
+            <p className="font-montserrat font-bold text-sm w-[60%] leading-4 whitespace-nowrap">
+              Última actualización:{" "}
+              <span className="font-montserrat font-normal text-sm leading-4">
+                {convertUtcToDeviceTime(location.timestamp)}
+              </span>
+            </p>
+          </div>
+        </div>
       )}
-      <Button
-        className="w-full bg-amber-300 hover:bg-amber-400 text-black dark:bg-amber-600 dark:hover:bg-amber-700 dark:text-white py-6"
-        onClick={fetchVehicleLocation}
-        disabled={loading}
-      >
-        {loading ? "Actualizando..." : "Actualizar ubicación"}
-      </Button>
+      <div className="w-full  max-w-screen-md mx-auto flex flex-col items-center md:flex-row md:justify-center md:gap-6">
+        <button
+          className="w-full md:w-80 md:mx-auto bg-wari-yellow hover:bg-amber-400 text-black text-[15px] font-montserrat font-bold py-3 px-8 rounded-4xl flex items-center justify-center gap-2 disabled:opacity-50 mt-4 md:mt-12"
+          onClick={fetchVehicleLocation}
+          disabled={loading}
+        >
+          <RefreshCcw className="h-6 w-6 stroke-[2.5] text-black" />
+          {loading ? "Actualizando..." : "Actualizar ubicación"}
+        </button>
+
+        <button
+          onClick={onShareTracking}
+          className="w-full md:w-80 md:mx-auto bg-wari-red hover:bg-red-400 text-white text-[15px] font-montserrat font-bold py-3 px-8 rounded-4xl flex items-center justify-center gap-2 disabled:opacity-50 mt-4 md:mt-12"
+          disabled={isShareDisable}
+        >
+          {isShareLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin text-white" />
+              Cargando...
+            </>
+          ) : (
+            <>
+              <Share2 className="h-6 w-6 stroke-[2.5] text-white" />
+              Compartir seguimiento
+            </>
+          )}
+        </button>
+      </div>
     </div>
   );
 }
