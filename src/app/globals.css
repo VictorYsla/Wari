@@ -92,6 +92,29 @@ body {
   }
 }
 
+@layer utilities {
+  @keyframes progress {
+    0% {
+      width: 0%;
+      border-top-right-radius: 0px;
+      border-bottom-right-radius: 0px;
+    }
+    99% {
+      border-top-right-radius: 0px;
+      border-bottom-right-radius: 0px;
+    }
+    100% {
+      width: 100%;
+      border-top-right-radius: 9999px;
+      border-bottom-right-radius: 9999px;
+    }
+  }
+
+  .animate-progress {
+    animation: progress 2s linear infinite;
+  }
+}
+
 /* Oculta los elementos de UI que html5-qrcode agrega */
 #qr-reader__dashboard_section,
 #qr-reader__dashboard_section_csr,
