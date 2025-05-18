@@ -1,7 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useSafeTimeout } from "@/hooks/useSafeTimeOut";
-import { TripStatus, TripStatusType, TripIdentifier } from "../types";
+import {
+  TripStatus,
+  TripStatusType,
+  TripIdentifier,
+  NetworkInformation,
+} from "../types";
 import useTripSocket from "@/hooks/useTripSocket";
 import { useSearchParams } from "next/navigation";
 import { Trip } from "@/app/types/types";
@@ -272,16 +277,71 @@ export const useTripTracking = () => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         forceReconnect();
+        silentlyUpdateTripData();
       }
+    };
+
+    const handleOnline = () => {
+      console.log("Conexión a internet restaurada");
+      forceReconnect();
+      silentlyUpdateTripData();
+    };
+
+    const handleOffline = () => {
+      toast({
+        title: "Sin conexión de internet",
+        description: "Los datos se actualizarán cuando la conexión retorne",
+        variant: "destructive",
+      });
+      // Aquí podrías mostrar un mensaje al usuario, si quieres
     };
 
     window.addEventListener("focus", handleFocus);
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     return () => {
       window.removeEventListener("focus", handleFocus);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
     };
+  }, []);
+
+  useEffect(() => {
+    if ("connection" in navigator) {
+      const connection = navigator.connection as NetworkInformation;
+
+      const handleConnectionChange = () => {
+        console.log("Tipo:", connection.effectiveType);
+        console.log("RTT:", connection.rtt);
+
+        if (
+          connection.effectiveType === "slow-2g" ||
+          connection.effectiveType === "2g" ||
+          connection.effectiveType === "3g" || // <-- Aquí agregamos 3g
+          (connection.rtt !== undefined && connection.rtt > 300)
+        ) {
+          console.warn("Conexión inestable detectada");
+          toast({
+            title: "Conexión a internet inestable",
+            description:
+              "Conexión inestable, los datos pueden no estar actualizados",
+            variant: "destructive",
+          });
+        }
+      };
+
+      connection.addEventListener("change", handleConnectionChange);
+
+      // Llamamos la primera vez para detectar estado actual
+      handleConnectionChange();
+
+      return () => {
+        connection.removeEventListener("change", handleConnectionChange);
+      };
+    }
   }, []);
 
   return {
