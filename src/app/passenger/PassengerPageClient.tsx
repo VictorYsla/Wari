@@ -267,7 +267,8 @@ export default function PassengerPage() {
 
       toast({
         title: "Seguimiento finalizado",
-        description: "Has dejado de seguir la ubicación del vehículo.",
+        description: `Has dejado de seguir la ubicación del vehículo`,
+        variant: "informative",
       });
     } catch (error: any) {
       resetTrackingState();

@@ -1,15 +1,7 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { AlertCircle, Flag } from "lucide-react";
+import { CircleArrowLeft, Flag, Frown, MapPin } from "lucide-react";
 import { Destination } from "../types";
 import { Trip } from "@/app/types/types";
+import clsx from "clsx";
 
 interface TripEndedViewProps {
   destination?: Destination | null;
@@ -22,67 +14,79 @@ export const TripEndedView = ({
   onGoBack,
 }: TripEndedViewProps) => {
   return (
-    <div className="min-h-screen bg-[#fffbeb] flex flex-col items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md">
-        <Card className="border-amber-300 border-2 bg-[#fffbeb] p-6 shadow-sm">
-          <CardHeader className="px-0 pt-0">
-            <CardTitle>
+    <div className="min-h-screen bg-wari-gray flex flex-col items-center px-4 py-8 md:py-12">
+      <div className="bg-white rounded-3xl w-full max-w-screen-md  py-22 px-6 flex flex-col items-center">
+        <div
+          className={`px-4 pt-25 pb-6 shadow-sm w-full rounded-3xl flex flex-col justify-center items-center border-2 ${
+            tripData?.is_completed ? "border-wari-green" : "border-wari-black"
+          }`}
+        >
+          {" "}
+          <div
+            className={`px-0 pt-0 w-full flex flex-col items-center text-center ${
+              tripData?.is_completed ? "mb-10" : "mb-20"
+            }`}
+          >
+            {!tripData?.is_completed ? (
+              <Frown className="h-20 w-20 stroke-[2.5] text-wari-black" />
+            ) : (
+              <Flag className="h-20 w-20 stroke-[2.5] text-wari-green" />
+            )}
+            <h2
+              className={clsx(
+                "font-montserrat font-bold text-xl mt-4",
+                tripData?.is_completed ? "text-wari-green" : "text-wari-black"
+              )}
+            >
               {!tripData?.is_completed ? "Viaje Cancelado" : "Viaje Finalizado"}
-            </CardTitle>
-            <p className="text-gray-700">
+            </h2>
+            <p className="font-montserrat font-normal text-sm  mt-5">
               {!tripData?.is_completed
                 ? tripData?.is_canceled_by_passenger
-                  ? "El pasajero ha cancelado el viaje"
-                  : "El conductor ha cancelado el viaje"
-                : "El vehículo ha llegado a su destino"}
+                  ? "El pasajero ha cancelado el viaje."
+                  : "El conductor ha cancelado el viaje."
+                : "El vehículo ha llegado a su destino."}
             </p>
-          </CardHeader>
-          <CardContent className="space-y-6 px-0 pt-4">
-            <Alert
-              className={
+          </div>
+          {tripData?.is_completed && (
+            <div className="bg-wari-gray px-4 py-6 rounded-3xl flex mb-10">
+              <MapPin className="w-10 h-10 stroke-[2.5] text-wari-black pb-4" />
+              <p className="font-montserrat font-bold text-sm leading-4">
+                Destino:{" "}
+                <span className="font-montserrat font-normal text-sm leading-4">
+                  {destination?.address}
+                </span>
+              </p>
+            </div>
+          )}
+          <div className="space-y-6 px-0 text-center w-full flex flex-col items-center">
+            <p
+              className={`font-montserrat font-bold text-sm  ${
                 !tripData?.is_completed
-                  ? "bg-amber-100 border-amber-300"
-                  : "bg-green-100 border-green-300"
-              }
+                  ? "text-wari-black bg-wari-gray px-4 py-6 w-full rounded-3xl mb-20"
+                  : "text-wari-green mb-10"
+              }`}
             >
               {!tripData?.is_completed ? (
-                <AlertCircle className="h-5 w-5 mr-2 text-amber-600" />
+                <>
+                  El seguimiento del vehículo
+                  <br />
+                  se ha detenido automáticamente.
+                </>
               ) : (
-                <Flag className="h-5 w-5 mr-2 text-green-600" />
+                `El seguimiento ha finalizado.`
               )}
-              <AlertTitle
-                className={
-                  !tripData?.is_completed
-                    ? "text-amber-800 font-bold mb-1"
-                    : "text-green-800 font-bold mb-1"
-                }
-              >
-                {!tripData?.is_completed
-                  ? "Viaje cancelado"
-                  : "Destino alcanzado"}
-              </AlertTitle>
-              <AlertDescription
-                className={
-                  !tripData?.is_completed ? "text-amber-700" : "text-green-700"
-                }
-              >
-                {!tripData?.is_completed
-                  ? tripData?.is_canceled_by_passenger
-                    ? "El pasajero canceló el viaje. El seguimiento de ubicación se ha detenido automáticamente."
-                    : "El conductor canceló el viaje. El seguimiento de ubicación se ha detenido automáticamente."
-                  : `El vehículo ha llegado a ${
-                      destination?.address || "su destino"
-                    }. El seguimiento ha finalizado.`}
-              </AlertDescription>
-            </Alert>
-            <Button
-              className="w-full border-gray-300 py-6 hover:bg-gray-100"
+            </p>
+
+            <button
+              className="w-full md:w-80 bg-wari-black hover:bg-black-300 text-white text-[15px] font-montserrat font-bold py-3 px-8 rounded-4xl flex items-center justify-center gap-2 disabled:opacity-50"
               onClick={onGoBack}
             >
+              <CircleArrowLeft className="h-6 w-6 stroke-[2.5] text-white" />
               Volver al inicio
-            </Button>
-          </CardContent>
-        </Card>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

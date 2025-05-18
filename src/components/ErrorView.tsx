@@ -1,5 +1,5 @@
 import { CircleArrowLeft, CircleX, RotateCw } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 
 interface ErrorViewProps {
   tripStatus: {
@@ -39,7 +39,7 @@ export const ErrorView = ({ tripStatus, onGoBack }: ErrorViewProps) => {
 
               <button
                 className="w-full md:w-80 bg-wari-red hover:bg-red-400 text-white text-[15px] font-montserrat font-bold py-3 px-8 rounded-4xl flex items-center justify-center gap-2 disabled:opacity-50"
-                onClick={() => router.back()}
+                onClick={() => router.reload()}
               >
                 <RotateCw className="h-6 w-6 stroke-[2.5] text-white" />
                 Intentar nuevamente
