@@ -4,6 +4,7 @@ import { Trip } from "@/app/types/types";
 import useTripSocket from "@/hooks/useTripSocket";
 import { useAuth, useSignIn, useSignUp } from "@clerk/nextjs";
 import { useAppStore } from "@/hooks/useAppStore";
+import { NetworkInformation } from "@/app/passenger/types";
 
 export const useDriver = () => {
   const { toast } = useToast();
@@ -362,13 +363,72 @@ export const useDriver = () => {
       }
     };
 
+    const handleOnline = () => {
+      console.log("Conexión a internet restaurada");
+      forceReconnect();
+      silentlyRestoreTripSession();
+    };
+
+    const handleOffline = () => {
+      toast({
+        title: "Sin conexión de internet",
+        description: "Los datos se actualizarán cuando la conexión retorne",
+        variant: "destructive",
+      });
+      // Aquí podrías mostrar un mensaje al usuario, si quieres
+    };
+
     window.addEventListener("focus", handleFocus);
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     return () => {
       window.removeEventListener("focus", handleFocus);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
     };
+  }, []);
+
+  useEffect(() => {
+    if ("connection" in navigator) {
+      const connection = navigator.connection as NetworkInformation;
+
+      const handleConnectionChange = () => {
+        console.log("Tipo:", connection.effectiveType);
+        console.log("RTT:", connection.rtt);
+
+        const isUnstable =
+          connection.effectiveType === "slow-2g" ||
+          connection.effectiveType === "2g" ||
+          connection.effectiveType === "3g" ||
+          (connection.rtt !== undefined && connection.rtt > 300);
+
+        if (isUnstable) {
+          console.warn("Conexión inestable detectada");
+          toast({
+            title: "Conexión a internet inestable",
+            description:
+              "Conexión inestable, los datos pueden no estar actualizados",
+            variant: "destructive",
+          });
+        } else {
+          // Aquí la conexión es estable
+          forceReconnect();
+          silentlyRestoreTripSession();
+        }
+      };
+
+      connection.addEventListener("change", handleConnectionChange);
+
+      // Ejecutar al montar para detectar estado inicial
+      handleConnectionChange();
+
+      return () => {
+        connection.removeEventListener("change", handleConnectionChange);
+      };
+    }
   }, []);
 
   const tripState = {
