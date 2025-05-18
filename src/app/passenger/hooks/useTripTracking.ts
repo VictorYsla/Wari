@@ -26,34 +26,37 @@ export const useTripTracking = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const isStoppedTracking = useRef(false);
 
-  const { isConnected } = useTripSocket(tripIdParam || "", (trip: Trip) => {
-    setTripData(trip);
-    setIsCancelledByPassenger(trip.is_canceled_by_passenger);
+  const { isConnected, forceReconnect } = useTripSocket(
+    tripIdParam || "",
+    (trip: Trip) => {
+      setTripData(trip);
+      setIsCancelledByPassenger(trip.is_canceled_by_passenger);
 
-    if (trip.is_completed) {
-      handleTripCompleted();
-      return;
-    }
+      if (trip.is_completed) {
+        handleTripCompleted();
+        return;
+      }
 
-    if (trip.is_canceled_by_passenger && !isStoppedTracking.current) {
-      handlePassengerCancelled();
-      return;
-    }
+      if (trip.is_canceled_by_passenger && !isStoppedTracking.current) {
+        handlePassengerCancelled();
+        return;
+      }
 
-    if (
-      !trip.is_active &&
-      !trip.is_completed &&
-      !isStoppedTracking.current &&
-      !trip.destination
-    ) {
-      handleDriverCancelledPendingTrip();
-      return;
-    }
+      if (
+        !trip.is_active &&
+        !trip.is_completed &&
+        !isStoppedTracking.current &&
+        !trip.destination
+      ) {
+        handleDriverCancelledPendingTrip();
+        return;
+      }
 
-    if (!trip.is_active && !trip.is_completed && !isStoppedTracking.current) {
-      handleDriverCancelledWithTimeout();
+      if (!trip.is_active && !trip.is_completed && !isStoppedTracking.current) {
+        handleDriverCancelledWithTimeout();
+      }
     }
-  });
+  );
 
   const handleTripCompleted = () => {
     setIsTracking(false);
@@ -185,6 +188,48 @@ export const useTripTracking = () => {
     setTripStatus(null);
   };
 
+  const silentlyUpdateTripData = async () => {
+    try {
+      if (!tripIdParam || tripIdParam.trim() === "") return;
+
+      const response = await fetch(`/api/get-trip`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: tripIdParam }),
+      });
+
+      if (!response.ok) return;
+
+      const tripResponse = await response.json();
+      if (!tripResponse.data) return;
+
+      // Actualiza estado si está finalizado o cancelado
+      if (tripResponse.data.is_completed) {
+        setTripStatus({
+          type: TripStatusType.COMPLETED,
+          message: "Viaje finalizado",
+          description: "Este viaje ha sido completado.",
+        });
+      } else if (
+        !tripResponse.data.is_active &&
+        !tripResponse.data.grace_period_active
+      ) {
+        const isCancelledByPassenger = tripResponse.data
+          .is_canceled_by_passenger
+          ? "pasajero"
+          : "conductor";
+        setTripStatus({
+          type: TripStatusType.CANCELLED,
+          message: "Viaje cancelado",
+          description: `Este viaje ha sido cancelado por el ${isCancelledByPassenger} o ya no está activo.`,
+        });
+      }
+      setTripData({ ...tripResponse.data });
+    } catch {
+      // Silenciar errores
+    }
+  };
+
   useEffect(() => {
     // if (!tripData?.is_active && !tripData?.grace_period_end_time) return;
     // el viaje está activo y el periodo es 0 este pasará y causará que el viaje se cancele
@@ -217,6 +262,27 @@ export const useTripTracking = () => {
       }
     };
   }, [tripData?.is_active, tripData?.grace_period_end_time]);
+
+  useEffect(() => {
+    const handleFocus = () => {
+      forceReconnect();
+      silentlyUpdateTripData();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        forceReconnect();
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
 
   return {
     tripIdentifier,

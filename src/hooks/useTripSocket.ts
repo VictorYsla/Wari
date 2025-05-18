@@ -9,25 +9,25 @@ export default function useTripSocket(
   onTripStatusChange: (trip: any) => void
 ) {
   const previousRoomRef = useRef<string | null>(null);
+  const hasDisconnectedOnceRef = useRef(false); // ✅ Cambio: ref en vez de estado
 
-  const [hasDisconnectedOnce, setHasDisconnectedOnce] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
 
-  useEffect(() => {
+  const connectSocket = () => {
     if (globalSocket) return;
 
     const socket = io(`${baseURL}`, {
       reconnection: true,
-      reconnectionAttempts: Infinity, // reconectar infinitamente
-      reconnectionDelay: 1000, // intentar cada segundo
-      timeout: 20000, // tiempo máximo para conectar
-      reconnectionDelayMax: 5000, // limita el tiempo entre reconexiones
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      timeout: 20000,
+      reconnectionDelayMax: 5000,
     });
 
     globalSocket = socket;
 
     socket.on("connect", () => {
-      if (hasDisconnectedOnce && previousRoomRef.current) {
+      if (hasDisconnectedOnceRef.current && previousRoomRef.current) {
         socket.emit("join-trip-room", { id: previousRoomRef.current });
         setIsConnected(true);
       }
@@ -36,7 +36,7 @@ export default function useTripSocket(
     socket.on("disconnect", (reason) => {
       console.warn("⚠️ Socket disconnected:", reason);
       setIsConnected(false);
-      setHasDisconnectedOnce(true);
+      hasDisconnectedOnceRef.current = true; // ✅ Cambio aquí
     });
 
     socket.on("reconnect", () => {
@@ -49,6 +49,10 @@ export default function useTripSocket(
     socket.on("trip-status-change", (trip) => {
       onTripStatusChange(trip);
     });
+  };
+
+  useEffect(() => {
+    connectSocket();
   }, [onTripStatusChange]);
 
   useEffect(() => {
@@ -70,5 +74,18 @@ export default function useTripSocket(
     }
   }
 
-  return { disconnectTripSocket, isConnected };
+  function forceReconnect() {
+    if (globalSocket) {
+      globalSocket.disconnect();
+      globalSocket = null;
+    }
+    setIsConnected(false);
+    connectSocket();
+  }
+
+  return {
+    disconnectTripSocket,
+    forceReconnect,
+    isConnected,
+  };
 }

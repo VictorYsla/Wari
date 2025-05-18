@@ -28,7 +28,7 @@ export const useDriver = () => {
     cancel: false,
   });
 
-  const { isConnected } = useTripSocket(
+  const { isConnected, forceReconnect } = useTripSocket(
     activeTrip?.id || "",
     async (trip: Trip) => {
       setTripState({ activeTrip: trip });
@@ -195,18 +195,22 @@ export const useDriver = () => {
       body: JSON.stringify({ imei: activeTrip?.imei }),
     });
 
+    const body: any = {
+      id: activeTrip?.id,
+      is_active: false,
+    };
+
+    if (isActive && hasDestination) {
+      body.grace_period_active = true;
+      body.grace_period_end_time = new Date(
+        Date.now() + 10 * 60 * 1000
+      ).toISOString();
+    }
+
     const updateResponse = await fetch(`/api/update-trip`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: activeTrip?.id,
-        is_active: false,
-        grace_period_active: isActive && hasDestination ? true : false,
-        grace_period_end_time:
-          isActive && hasDestination
-            ? new Date(Date.now() + 10 * 60 * 1000).toISOString()
-            : null,
-      }),
+      body: JSON.stringify(body),
     });
 
     setTripState({ activeTrip: null });
@@ -263,6 +267,45 @@ export const useDriver = () => {
     }
   };
 
+  const silentlyRestoreTripSession = async () => {
+    const tripId = localStorage.getItem("tripId");
+    const isAuthenticated = localStorage.getItem("driverAuthenticated");
+    const plate = localStorage.getItem("plate");
+
+    if (tripId && isAuthenticated) {
+      try {
+        const response = await fetch("/api/get-trip", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: tripId }),
+        });
+
+        if (!response.ok) return;
+
+        const { data } = await response.json();
+
+        if (data.is_active) {
+          setTripState({ activeTrip: data });
+        } else {
+          createTrip(data.imei);
+        }
+
+        if (plate) {
+          const vehicle = await findVehicleByPlate(plate);
+          if (vehicle) {
+            setAuthState({
+              plateNumber: plate,
+              isAuthenticated: true,
+              vehicleDetails: vehicle,
+            });
+          }
+        }
+      } catch {
+        // Silencioso: no mostramos errores ni toasts
+      }
+    }
+  };
+
   useEffect(() => {
     const loadInitialState = async () => {
       const tripId = localStorage.getItem("tripId");
@@ -305,6 +348,27 @@ export const useDriver = () => {
     };
 
     loadInitialState();
+  }, []);
+
+  useEffect(() => {
+    const handleFocus = () => {
+      forceReconnect();
+      silentlyRestoreTripSession();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        forceReconnect();
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
   const tripState = {

@@ -242,19 +242,23 @@ export default function PassengerPage() {
         },
         body: JSON.stringify({ imei: tripIdentifier.imei }),
       });
+      const body: any = {
+        id: tripIdentifier?.tripId,
+        is_active: false,
+        is_canceled_by_passenger: true,
+      };
+
+      if (isActive && hasDestination) {
+        body.grace_period_active = true;
+        body.grace_period_end_time = new Date(
+          Date.now() + 10 * 60 * 1000
+        ).toISOString();
+      }
+
       const updateResponse = await fetch(`/api/update-trip`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: tripIdentifier?.tripId,
-          is_active: false,
-          is_canceled_by_passenger: true,
-          grace_period_active: isActive && hasDestination ? true : false,
-          grace_period_end_time:
-            isActive && hasDestination
-              ? new Date(Date.now() + 10 * 60 * 1000).toISOString()
-              : null,
-        }),
+        body: JSON.stringify(body),
       });
 
       setIsTracking(false);
