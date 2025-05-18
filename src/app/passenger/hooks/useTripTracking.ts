@@ -317,12 +317,13 @@ export const useTripTracking = () => {
         console.log("Tipo:", connection.effectiveType);
         console.log("RTT:", connection.rtt);
 
-        if (
+        const isUnstable =
           connection.effectiveType === "slow-2g" ||
           connection.effectiveType === "2g" ||
-          connection.effectiveType === "3g" || // <-- Aquí agregamos 3g
-          (connection.rtt !== undefined && connection.rtt > 300)
-        ) {
+          connection.effectiveType === "3g" ||
+          (connection.rtt !== undefined && connection.rtt > 300);
+
+        if (isUnstable) {
           console.warn("Conexión inestable detectada");
           toast({
             title: "Conexión a internet inestable",
@@ -330,12 +331,16 @@ export const useTripTracking = () => {
               "Conexión inestable, los datos pueden no estar actualizados",
             variant: "destructive",
           });
+        } else {
+          // Aquí la conexión es estable
+          forceReconnect();
+          silentlyUpdateTripData();
         }
       };
 
       connection.addEventListener("change", handleConnectionChange);
 
-      // Llamamos la primera vez para detectar estado actual
+      // Ejecutar al montar para detectar estado inicial
       handleConnectionChange();
 
       return () => {
