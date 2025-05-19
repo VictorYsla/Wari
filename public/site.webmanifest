@@ -1,0 +1,28 @@
+{
+  "name": "Wari - seguimiento vehicular",
+  "short_name": "Wari",
+  "description": "Wari te permite seguir vehículos en tiempo real con GPS, brindando seguridad y confianza en Huánuco.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f8f8",
+  "theme_color": "#ffffff",
+  "lang": "es-PE",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

@@ -6,7 +6,6 @@ import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import "../styles/fonts.css";
 import { ThemeProvider } from "@/components/theme-provider";
-
 import { Montserrat } from "next/font/google";
 
 const montserrat = Montserrat({
@@ -40,7 +39,7 @@ export const metadata = {
     siteName: "WARI",
     images: [
       {
-        url: "https://wari.hawkperu.com/logo.png", // Asegúrate que esta imagen existe
+        url: "https://wari.hawkperu.com/logo.png",
         width: 1200,
         height: 630,
         alt: "Wari - Taxi seguro con GPS",
@@ -54,7 +53,9 @@ export const metadata = {
     follow: true,
   },
   icons: {
-    icon: "/logo.png",
+    icon: "/favicon.ico",
+    shortcut: "/favicon-32x32.png",
+    apple: "/favicon-180x180.png",
   },
   twitter: {
     card: "summary_large_image",
@@ -62,7 +63,7 @@ export const metadata = {
     description:
       "Con Wari puedes seguir en tiempo real el taxi donde viaja tu ser querido. Seguridad y tranquilidad gracias al GPS Hawk.",
     images: ["https://wari.hawkperu.com/logo.png"],
-    creator: "@wari_huanuco", // opcional, si tienes cuenta de Twitter
+    creator: "@wari_huanuco",
   },
   alternates: {
     canonical: "https://wari.hawkperu.com",
@@ -82,7 +83,21 @@ export default function RootLayout({ children }: RootLayoutProps) {
             name="google-site-verification"
             content="1h7rffeEA3YwY6ATcAma8uEoJgz7QZeuT6XSJ8lAu4c"
           />
-          <link rel="icon" href="logo.png" sizes="any" className="bg-white" />
+          <link rel="icon" href="/favicon.ico" />
+          <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="/favicon-32x32.png"
+          />
+          <link
+            rel="icon"
+            type="image/png"
+            sizes="16x16"
+            href="/favicon-16x16.png"
+          />
+          <link rel="manifest" href="/site.webmanifest" />
+
           <script
             src={`https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places`}
             async
