@@ -61,7 +61,7 @@ export const metadata = {
     title: "WARI - Taxis Seguros con GPS en Huánuco",
     description:
       "Con Wari puedes seguir en tiempo real el taxi donde viaja tu ser querido. Seguridad y tranquilidad gracias al GPS Hawk.",
-    images: ["https://wari.hawkperu.com/og-image.jpg"],
+    images: ["https://wari.hawkperu.com/logo.png"],
     creator: "@wari_huanuco", // opcional, si tienes cuenta de Twitter
   },
   alternates: {
