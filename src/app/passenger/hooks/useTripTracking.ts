@@ -324,10 +324,10 @@ export const useTripTracking = () => {
       }
     };
 
-    window.addEventListener("touchstart", handleTouchSync);
+    window.addEventListener("touchend", handleTouchSync);
 
     return () => {
-      window.removeEventListener("touchstart", handleTouchSync);
+      window.removeEventListener("touchend", handleTouchSync);
     };
   }, [isConnected]);
 

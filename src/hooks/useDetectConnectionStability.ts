@@ -75,10 +75,10 @@ export function useDetectConnectionStability(
         detectSlowConnection();
       };
 
-      window.addEventListener("touchstart", handleTouch);
+      window.addEventListener("touchend", handleTouch);
 
       return () => {
-        window.removeEventListener("touchstart", handleTouch);
+        window.removeEventListener("touchend", handleTouch);
       };
     }
   }, []);

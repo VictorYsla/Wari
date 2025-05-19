@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Trip } from "@/app/types/types";
+import { DeviceObject, Trip } from "@/app/types/types";
 import useTripSocket from "@/hooks/useTripSocket";
 import { useAuth, useSignIn, useSignUp } from "@clerk/nextjs";
 import { useAppStore } from "@/hooks/useAppStore";
@@ -116,7 +116,11 @@ export const useDriver = () => {
       const vehicle = await findVehicleByPlate(plateNumber.trim());
 
       if (vehicle?.imei) {
-        const authResult = await handleAuthWithClerk(plateNumber, password);
+        const authResult = await handleAuthWithClerk(
+          plateNumber,
+          password,
+          vehicle
+        );
 
         if (!authResult.success) {
           throw new Error(authResult.error || "Error en autenticación");
@@ -225,7 +229,11 @@ export const useDriver = () => {
     setLoading({ ...loading, cancel: false });
   };
 
-  const handleAuthWithClerk = async (plateNumber: string, password: string) => {
+  const handleAuthWithClerk = async (
+    plateNumber: string,
+    password: string,
+    vehicle: DeviceObject
+  ) => {
     try {
       const signInResult = await signIn?.create({
         identifier: plateNumber.trim(),
@@ -258,6 +266,36 @@ export const useDriver = () => {
             // });
 
             await setActiveRegister({ session: signUpResult.createdSessionId });
+
+            console.log({ signUpResult: signUpResult.createdUserId });
+
+            const expireDt = vehicle?.expire_dt
+              ? new Date(vehicle.expire_dt).toISOString()
+              : new Date().toISOString();
+
+            try {
+              const createUserResponse = await fetch("/api/create-user", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  plate: plateNumber.trim(),
+                  is_active: true,
+                  expired: false,
+                  expired_date: expireDt, // o puedes establecer una fecha personalizada
+                  clerk_id: signUpResult.id?.toString(),
+                  clerk_created_user_id: signUpResult.createdUserId?.toString(),
+                }),
+              });
+
+              const createUserResult = await createUserResponse.json();
+
+              if (!createUserResult.success) {
+                console.log("createUser error:", createUserResult.message);
+              }
+            } catch (apiError) {
+              console.log("Error llamando a /api/create-user:", apiError);
+            }
+
             return { success: true, isNewUser: true };
           }
         } catch (signUpError) {
@@ -401,10 +439,10 @@ export const useDriver = () => {
       }
     };
 
-    window.addEventListener("touchstart", handleTouchSync);
+    window.addEventListener("touchend", handleTouchSync);
 
     return () => {
-      window.removeEventListener("touchstart", handleTouchSync);
+      window.removeEventListener("touchend", handleTouchSync);
     };
   }, [isConnected]);
 
