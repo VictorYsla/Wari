@@ -19,7 +19,7 @@ const montserrat = Montserrat({
 export const metadata = {
   metadataBase: new URL("https://wari.hawkperu.com"),
   title:
-    "WARI - Taxis Seguros con GPS en Huánuco | Comparte tu ubicación en tiempo real",
+    "Wari - Taxis Seguros con GPS en Huánuco | Comparte tu ubicación en tiempo real",
   description:
     "Con Wari, los taxis en Huánuco son más seguros. Gracias al GPS integrado, puedes ver el recorrido del taxi en tiempo real y compartir tu ubicación con tus seres queridos. Totalmente gratis para el pasajero.",
   keywords: [
@@ -32,11 +32,11 @@ export const metadata = {
     "app taxi gratis Perú",
   ],
   openGraph: {
-    title: "WARI - Taxis Seguros en Huánuco",
+    title: "Wari - Taxis Seguros en Huánuco",
     description:
       "Ve el recorrido del taxi en tiempo real y compártelo con tus familiares. Seguridad gratis para el pasajero.",
     url: "https://wari.hawkperu.com/",
-    siteName: "WARI",
+    siteName: "Wari",
     images: [
       {
         url: "https://wari.hawkperu.com/logo.png",
@@ -59,7 +59,7 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "WARI - Taxis Seguros con GPS en Huánuco",
+    title: "Wari - Taxis Seguros con GPS en Huánuco",
     description:
       "Con Wari puedes seguir en tiempo real el taxi donde viaja tu ser querido. Seguridad y tranquilidad gracias al GPS Hawk.",
     images: ["https://wari.hawkperu.com/logo.png"],
@@ -79,6 +79,18 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <ClerkProvider>
       <html lang="es" className={montserrat.variable} suppressHydrationWarning>
         <head>
+          <script type="application/ld+json">
+            {`
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                "name": "Wari",
+                "alternateName": "Wari - seguimiento vehicular",
+                "url": "https://wari.hawkperu.com/"
+              }
+            `}
+          </script>
+
           <meta
             name="google-site-verification"
             content="1h7rffeEA3YwY6ATcAma8uEoJgz7QZeuT6XSJ8lAu4c"
