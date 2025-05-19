@@ -10,6 +10,7 @@ import {
 import useTripSocket from "@/hooks/useTripSocket";
 import { useSearchParams } from "next/navigation";
 import { Trip } from "@/app/types/types";
+import { useDetectConnectionStability } from "@/hooks/useDetectConnectionStability";
 
 export const useTripTracking = () => {
   const { toast } = useToast();
@@ -235,6 +236,8 @@ export const useTripTracking = () => {
     }
   };
 
+  useDetectConnectionStability(forceReconnect, silentlyUpdateTripData);
+
   useEffect(() => {
     // if (!tripData?.is_active && !tripData?.grace_period_end_time) return;
     // el viaje está activo y el periodo es 0 este pasará y causará que el viaje se cancele
@@ -282,7 +285,11 @@ export const useTripTracking = () => {
     };
 
     const handleOnline = () => {
-      console.log("Conexión a internet restaurada");
+      toast({
+        title: "Conexión restaurada",
+        description: "Sincronizando datos",
+        variant: "informative",
+      });
       forceReconnect();
       silentlyUpdateTripData();
     };
@@ -310,44 +317,19 @@ export const useTripTracking = () => {
   }, []);
 
   useEffect(() => {
-    if ("connection" in navigator) {
-      const connection = navigator.connection as NetworkInformation;
+    const handleTouchSync = () => {
+      if (!isConnected) {
+        forceReconnect();
+        silentlyUpdateTripData();
+      }
+    };
 
-      const handleConnectionChange = () => {
-        console.log("Tipo:", connection.effectiveType);
-        console.log("RTT:", connection.rtt);
+    window.addEventListener("touchstart", handleTouchSync);
 
-        const isUnstable =
-          connection.effectiveType === "slow-2g" ||
-          connection.effectiveType === "2g" ||
-          connection.effectiveType === "3g" ||
-          (connection.rtt !== undefined && connection.rtt > 300);
-
-        if (isUnstable) {
-          console.warn("Conexión inestable detectada");
-          toast({
-            title: "Conexión a internet inestable",
-            description:
-              "Conexión inestable, los datos pueden no estar actualizados",
-            variant: "destructive",
-          });
-        } else {
-          // Aquí la conexión es estable
-          forceReconnect();
-          silentlyUpdateTripData();
-        }
-      };
-
-      connection.addEventListener("change", handleConnectionChange);
-
-      // Ejecutar al montar para detectar estado inicial
-      handleConnectionChange();
-
-      return () => {
-        connection.removeEventListener("change", handleConnectionChange);
-      };
-    }
-  }, []);
+    return () => {
+      window.removeEventListener("touchstart", handleTouchSync);
+    };
+  }, [isConnected]);
 
   return {
     tripIdentifier,

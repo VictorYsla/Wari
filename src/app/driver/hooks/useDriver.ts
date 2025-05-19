@@ -5,6 +5,7 @@ import useTripSocket from "@/hooks/useTripSocket";
 import { useAuth, useSignIn, useSignUp } from "@clerk/nextjs";
 import { useAppStore } from "@/hooks/useAppStore";
 import { NetworkInformation } from "@/app/passenger/types";
+import { useDetectConnectionStability } from "@/hooks/useDetectConnectionStability";
 
 export const useDriver = () => {
   const { toast } = useToast();
@@ -307,6 +308,8 @@ export const useDriver = () => {
     }
   };
 
+  useDetectConnectionStability(forceReconnect, silentlyRestoreTripSession);
+
   useEffect(() => {
     const loadInitialState = async () => {
       const tripId = localStorage.getItem("tripId");
@@ -364,7 +367,6 @@ export const useDriver = () => {
     };
 
     const handleOnline = () => {
-      console.log("Conexión a internet restaurada");
       forceReconnect();
       silentlyRestoreTripSession();
     };
@@ -392,44 +394,19 @@ export const useDriver = () => {
   }, []);
 
   useEffect(() => {
-    if ("connection" in navigator) {
-      const connection = navigator.connection as NetworkInformation;
+    const handleTouchSync = () => {
+      if (!isConnected) {
+        forceReconnect();
+        silentlyRestoreTripSession();
+      }
+    };
 
-      const handleConnectionChange = () => {
-        console.log("Tipo:", connection.effectiveType);
-        console.log("RTT:", connection.rtt);
+    window.addEventListener("touchstart", handleTouchSync);
 
-        const isUnstable =
-          connection.effectiveType === "slow-2g" ||
-          connection.effectiveType === "2g" ||
-          connection.effectiveType === "3g" ||
-          (connection.rtt !== undefined && connection.rtt > 300);
-
-        if (isUnstable) {
-          console.warn("Conexión inestable detectada");
-          toast({
-            title: "Conexión a internet inestable",
-            description:
-              "Conexión inestable, los datos pueden no estar actualizados",
-            variant: "destructive",
-          });
-        } else {
-          // Aquí la conexión es estable
-          forceReconnect();
-          silentlyRestoreTripSession();
-        }
-      };
-
-      connection.addEventListener("change", handleConnectionChange);
-
-      // Ejecutar al montar para detectar estado inicial
-      handleConnectionChange();
-
-      return () => {
-        connection.removeEventListener("change", handleConnectionChange);
-      };
-    }
-  }, []);
+    return () => {
+      window.removeEventListener("touchstart", handleTouchSync);
+    };
+  }, [isConnected]);
 
   const tripState = {
     activeTrip,
