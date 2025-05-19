@@ -55,7 +55,7 @@ export const metadata = {
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon-32x32.png",
-    apple: "/favicon-180x180.png",
+    apple: "/apple-touch-icon.png",
   },
   twitter: {
     card: "summary_large_image",
@@ -95,6 +95,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
             type="image/png"
             sizes="16x16"
             href="/favicon-16x16.png"
+          />
+          <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="/apple-touch-icon.png"
           />
           <link rel="manifest" href="/site.webmanifest" />
 
