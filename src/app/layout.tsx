@@ -18,9 +18,55 @@ const montserrat = Montserrat({
 });
 
 export const metadata = {
-  title: "Wari - Seguimiento de Vehículos",
+  metadataBase: new URL("https://wari.hawkperu.com"),
+  title:
+    "WARI - Taxis Seguros con GPS en Huánuco | Comparte tu ubicación en tiempo real",
   description:
-    "Aplicación de seguimiento en tiempo real de vehículos de transporte",
+    "Con Wari, los taxis en Huánuco son más seguros. Gracias al GPS integrado, puedes ver el recorrido del taxi en tiempo real y compartir tu ubicación con tus seres queridos. Totalmente gratis para el pasajero.",
+  keywords: [
+    "taxi seguro",
+    "Huánuco",
+    "Wari app",
+    "GPS taxi",
+    "ubicación taxi en tiempo real",
+    "taxis confiables Huánuco",
+    "app taxi gratis Perú",
+  ],
+  openGraph: {
+    title: "WARI - Taxis Seguros en Huánuco",
+    description:
+      "Ve el recorrido del taxi en tiempo real y compártelo con tus familiares. Seguridad gratis para el pasajero.",
+    url: "https://wari.hawkperu.com/",
+    siteName: "WARI",
+    images: [
+      {
+        url: "https://wari.hawkperu.com/logo.jpg", // Asegúrate que esta imagen existe
+        width: 1200,
+        height: 630,
+        alt: "Wari - Taxi seguro con GPS",
+      },
+    ],
+    locale: "es_PE",
+    type: "website",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  icons: {
+    icon: "/logo.jpeg",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "WARI - Taxis Seguros con GPS en Huánuco",
+    description:
+      "Con Wari puedes seguir en tiempo real el taxi donde viaja tu ser querido. Seguridad y tranquilidad gracias al GPS Hawk.",
+    images: ["https://wari.hawkperu.com/og-image.jpg"],
+    creator: "@wari_huanuco", // opcional, si tienes cuenta de Twitter
+  },
+  alternates: {
+    canonical: "https://wari.hawkperu.com",
+  },
 };
 
 interface RootLayoutProps {
@@ -32,7 +78,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <ClerkProvider>
       <html lang="es" className={montserrat.variable} suppressHydrationWarning>
         <head>
-          <link rel="icon" href="logo.jpeg" sizes="any" />
+          <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+          <link rel="icon" href="logo.jpg" sizes="any" />
           <script
             src={`https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places`}
             async
