@@ -40,7 +40,7 @@ export const metadata = {
     siteName: "WARI",
     images: [
       {
-        url: "https://wari.hawkperu.com/logo.jpg", // Asegúrate que esta imagen existe
+        url: "https://wari.hawkperu.com/logo.png", // Asegúrate que esta imagen existe
         width: 1200,
         height: 630,
         alt: "Wari - Taxi seguro con GPS",
@@ -54,7 +54,7 @@ export const metadata = {
     follow: true,
   },
   icons: {
-    icon: "/logo.jpeg",
+    icon: "/logo.png",
   },
   twitter: {
     card: "summary_large_image",
@@ -78,8 +78,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <ClerkProvider>
       <html lang="es" className={montserrat.variable} suppressHydrationWarning>
         <head>
-          <link rel="icon" href="/logo.svg" type="image/svg+xml" />
-          <link rel="icon" href="logo.jpg" sizes="any" />
+          <link rel="icon" href="logo.png" sizes="any" className="bg-white" />
           <script
             src={`https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places`}
             async
