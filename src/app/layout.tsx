@@ -78,6 +78,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <ClerkProvider>
       <html lang="es" className={montserrat.variable} suppressHydrationWarning>
         <head>
+          <meta
+            name="google-site-verification"
+            content="1h7rffeEA3YwY6ATcAma8uEoJgz7QZeuT6XSJ8lAu4c"
+          />
           <link rel="icon" href="logo.png" sizes="any" className="bg-white" />
           <script
             src={`https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places`}
