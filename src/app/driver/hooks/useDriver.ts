@@ -266,9 +266,9 @@ export const useDriver = () => {
       : new Date().toISOString();
 
     const isSameExpiredDate =
-      expireDt === searchUserResult.data.expired_date.toString();
+      expireDt === searchUserResult?.data?.expired_date.toString();
 
-    if (searchUserResult.success) {
+    if (searchUserResult?.success) {
       try {
         const signInResult = await signIn?.create({
           identifier: plateNumber.trim(),
