@@ -71,8 +71,7 @@ export default function SearchPage() {
             Buscar Conductores
           </h1>
           <p className="font-montserrat text-sm leading-5 text-center mb-6">
-            Ingresa el código o placa del vehículo para verificar si es un Wari
-            activo
+            Ingresa la placa del vehículo para verificar si es un Wari activo
           </p>
         </div>
 
