@@ -45,7 +45,7 @@ export const QRScanView = ({
         {/* Botón de Go Back */}
         <button
           onClick={goBack} // Asegúrate de definir esta función, por ejemplo: const goBack = () => router.back()
-          className="absolute top-6 left-4 flex items-center gap-2 text-wari-black hover:text-black-500 font-montserrat font-medium"
+          className="absolute top-6 left-4 flex items-center gap-2 text-wari-black hover:text-black-500 font-montserrat font-medium mt-6"
         >
           {/* Puedes usar un ícono aquí si tienes uno */}
           <ArrowLeftIcon className="w-5 h-5" />
