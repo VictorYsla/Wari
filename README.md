@@ -79,6 +79,12 @@ NEXT_PUBLIC_Maps_API_KEY="tu_clave_api_de_Maps"
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="tu_clave_publicable_de_clerk"
 CLERK_SECRET_KEY="tu_clave_secreta_de_clerk"
 ```
+
+4. Correr el proyecto
+```
+yarn dev
+```
+
 ## 🧾 Licencia
 
 Este proyecto está bajo la licencia MIT.
