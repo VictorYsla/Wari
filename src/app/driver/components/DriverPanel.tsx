@@ -127,10 +127,10 @@ export const DriverPanel = ({
               isGeneratingQR
                 ? "bg-[#2a2416] hover:bg-[#3a3426] text-white"
                 : "bg-wari-red hover:bg-red-400 text-white",
-              (isLoading || !isConnected) && "opacity-50 cursor-not-allowed"
+              isLoading && "opacity-50 cursor-not-allowed"
             )}
             onClick={onLogout}
-            disabled={isLoading || !isConnected}
+            disabled={isLoading}
           >
             {isLoading ? (
               <>
