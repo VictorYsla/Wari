@@ -64,15 +64,15 @@ export default function DriverPage() {
               onSubmit={handleLogin}
             />
             <div className="mt-10 flex flex-col items-center text-xs text-gray-400">
-              <span className="mb-2">Secured by</span>
+              <span className="mb-2 text-black">Secured by</span>
               <a
                 href="https://clerk.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 hover:text-gray-500"
+                className="flex items-center gap-1 hover:text-gray-500 text-black"
               >
                 <Clerk className="h-6 w-6" />
-                <span className="underline">Clerk</span>
+                <span className="underline text-black">Clerk</span>
               </a>
             </div>
           </div>
