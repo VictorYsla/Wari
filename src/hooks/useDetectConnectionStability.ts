@@ -76,9 +76,11 @@ export function useDetectConnectionStability(
       };
 
       window.addEventListener("touchend", handleTouch);
+      window.addEventListener("click", handleTouch);
 
       return () => {
         window.removeEventListener("touchend", handleTouch);
+        window.removeEventListener("click", handleTouch);
       };
     }
   }, []);

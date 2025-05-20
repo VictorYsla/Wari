@@ -469,9 +469,11 @@ export const useDriver = () => {
     };
 
     window.addEventListener("touchend", handleTouchSync);
+    window.addEventListener("click", handleTouchSync);
 
     return () => {
       window.removeEventListener("touchend", handleTouchSync);
+      window.removeEventListener("click", handleTouchSync);
     };
   }, [isConnected]);
 
