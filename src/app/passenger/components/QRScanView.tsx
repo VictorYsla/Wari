@@ -1,4 +1,4 @@
-import { Check, Loader2 } from "lucide-react";
+import { ArrowLeftIcon, Check, Loader2 } from "lucide-react";
 import { QRCodeScanner } from "@/components/qr-code-scanner";
 import { DestinationSelector } from "@/components/destination-selector";
 import WhiteScanner from "@/assets/svgs/icon-white-scaner.svg";
@@ -31,9 +31,26 @@ export const QRScanView = ({
   onStartTracking,
   onResetScan,
 }: QRScanViewProps) => {
+  const goBack = () => {
+    if (scannedTripId) {
+      window.location.href = "/passenger";
+      return;
+    }
+    window.location.href = "/";
+  };
+
   return (
     <div className="min-h-screen bg-wari-gray flex flex-col items-center px-4 py-8 md:py-12">
       <div className="bg-white rounded-2xl px-1 w-full max-w-screen-md pb-8 pt-16 flex flex-col items-center">
+        {/* Botón de Go Back */}
+        <button
+          onClick={goBack} // Asegúrate de definir esta función, por ejemplo: const goBack = () => router.back()
+          className="absolute top-6 left-4 flex items-center gap-2 text-wari-black hover:text-black-500 font-montserrat font-medium"
+        >
+          {/* Puedes usar un ícono aquí si tienes uno */}
+          <ArrowLeftIcon className="w-5 h-5" />
+          Volver
+        </button>
         <div className="flex flex-col items-center justify-center w-full max-w-md md:max-w-xl md:mt-28 px-4">
           <div className="text-center mb-6">
             <h1 className="font-montserrat font-bold text-xl text-center">
