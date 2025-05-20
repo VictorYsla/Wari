@@ -1,37 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Wari 🚕 
 
-## Getting Started
+## 📌 Descripción del proyecto
 
-First, run the development server:
+¿Y si pudieras saber en todo momento a dónde va el taxi en el que viaja tu hijo, hija o un ser querido?
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Con **Wari**, eso ya es posible.  
+Gracias al sistema integrado de **#GPSHawk**, los taxis Wari comparten contigo su ubicación en tiempo real.
+
+🚕 Pero no solo eso: tú también puedes compartir ese recorrido con tus familiares o personas de confianza.
+
+Más seguridad, más tranquilidad… ¡y sin pagar un sol más!
+
+**Wari no reemplaza al taxi tradicional… lo mejora.**  
+Porque la seguridad ya no debe ser un lujo, sino un derecho.
+
+📍 *Muy pronto en Huánuco*  
+Taxis seguros, tecnología confiable, y todo **GRATIS** para el pasajero.
+
+## 🌐 Demo del proyecto
+
+- 🔗 [Despliegue](https://wari.hawkperu.com/)  
+- 📂 [Repositorio en GitHub](https://github.com/VictorYsla/Wari)
+
+## 🎥 Demo en video
+
+
+### 📍 Seguimiento del vehículo
+https://github.com/user-attachments/assets/c49a4d4e-24f6-4feb-9b46-9f439dbd4c7b
+
+### 🚖 Inicio de sesión y acceso a la app
+https://github.com/user-attachments/assets/5cb8ae0e-a272-46fa-adea-f4ee133435d3
+
+
+## 🔐 ¿Cómo se utiliza Clerk?
+
+Wari integra [Clerk](https://clerk.dev) para gestionar la autenticación de conductores.  
+
+### ✨ Registro e inicio de sesión
+
+Utilizamos los hooks de Clerk para poder utilizar el custom flow:
+
+```ts
+const { signUp, setActive: setActiveRegister } = useSignUp();
+const { signIn, setActive: setActiveLogin } = useSignIn();
+const { signOut } = useAuth();
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# Wari
+Así como también almacenamos el ```id ``` y el ```createdUserId``` para futuros manejos del usuario desde un panel administrativo
