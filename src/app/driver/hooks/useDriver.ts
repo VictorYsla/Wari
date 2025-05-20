@@ -6,6 +6,7 @@ import { useAuth, useSignIn, useSignUp } from "@clerk/nextjs";
 import { useAppStore } from "@/hooks/useAppStore";
 import { NetworkInformation } from "@/app/passenger/types";
 import { useDetectConnectionStability } from "@/hooks/useDetectConnectionStability";
+import { UserResponseType } from "../types";
 
 export const useDriver = () => {
   const { toast } = useToast();
@@ -84,6 +85,21 @@ export const useDriver = () => {
   };
 
   const createTrip = async (imei: string) => {
+    if (vehicleDetails?.expire_dt) {
+      const expireDate = new Date(vehicleDetails.expire_dt);
+      const now = new Date();
+
+      if (expireDate <= now) {
+        setTripState({ activeTrip: null });
+        toast({
+          title: "Pago pendiente",
+          description: `Tienes un pago pendiente desde ${vehicleDetails.expire_dt}`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     try {
       const response = await fetch("/api/register-trip", {
         method: "POST",
@@ -122,8 +138,8 @@ export const useDriver = () => {
           vehicle
         );
 
-        if (!authResult.success) {
-          throw new Error(authResult.error || "Error en autenticación");
+        if (!authResult?.success) {
+          throw new Error(authResult?.error || "Error en autenticación");
         }
 
         setAuthState({ isAuthenticated: true, vehicleDetails: vehicle });
@@ -234,76 +250,96 @@ export const useDriver = () => {
     password: string,
     vehicle: DeviceObject
   ) => {
+    const searchUserResponse = await fetch("/api/search-user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        plate: plateNumber.trim(), // puedes ajustar esto según el DTO que espera tu endpoint
+      }),
+    });
+
+    const searchUserResult =
+      (await searchUserResponse.json()) as UserResponseType;
+
+    const expireDt = vehicle?.expire_dt
+      ? new Date(vehicle.expire_dt).toISOString()
+      : new Date().toISOString();
+
+    const isSameExpiredDate =
+      expireDt === searchUserResult.data.expired_date.toString();
+
+    if (searchUserResult.success) {
+      try {
+        const signInResult = await signIn?.create({
+          identifier: plateNumber.trim(),
+          password: password.trim(),
+        });
+
+        if (signInResult?.status === "complete" && setActiveLogin) {
+          await setActiveLogin({ session: signInResult.createdSessionId });
+          if (!isSameExpiredDate) {
+            console.log("Son fechas difernetes!!!");
+            const updateUserResponse = await fetch("/api/update-user", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                id: searchUserResult.data.id,
+                plate: plateNumber.trim(), // Identificador para actualizar el usuario
+                expired_date: expireDt, // Nueva fecha de expiración en timestamptz ISO string
+                is_expired: false,
+              }),
+            });
+
+            const updateUserResult = await updateUserResponse.json();
+            console.log({ updateUserResult: updateUserResult.data });
+          }
+          return { success: true, isNewUser: false };
+        }
+
+        return { success: false, error: "Login no completado" };
+      } catch (signInError) {
+        return { success: false, error: "Error en al iniciar sesión" };
+      }
+    }
+
     try {
-      const signInResult = await signIn?.create({
-        identifier: plateNumber.trim(),
+      const signUpResult = await signUp?.create({
+        username: plateNumber.trim(),
         password: password.trim(),
       });
 
-      if (signInResult?.status === "complete" && setActiveLogin) {
-        await setActiveLogin({ session: signInResult.createdSessionId });
-        return { success: true, isNewUser: false };
-      }
+      if (signUpResult?.status === "complete" && setActiveRegister) {
+        await setActiveRegister({ session: signUpResult.createdSessionId });
 
-      return { success: false, error: "Login no completado" };
-    } catch (signInError) {
-      if (isClerkUserNotFoundError(signInError)) {
+        console.log({ signUpResult: signUpResult.createdUserId });
+
         try {
-          const signUpResult = await signUp?.create({
-            username: plateNumber.trim(),
-            password: password.trim(),
+          const createUserResponse = await fetch("/api/create-user", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              plate: plateNumber.trim(),
+              is_active: true,
+              expired: false,
+              expired_date: expireDt, // o puedes establecer una fecha personalizada
+              clerk_id: signUpResult.id?.toString(),
+              clerk_created_user_id: signUpResult.createdUserId?.toString(),
+            }),
           });
 
-          if (signUpResult?.status === "complete" && setActiveRegister) {
-            // Actualizar metadata directamente (mejor que endpoint adicional)
-            // await signUpResult?.user?.update({
-            //   unsafeMetadata: {
-            //     vehiclePlate: vehicle.plate,
-            //     vehicleIMEI: vehicle.imei,
-            //     vehicleName: vehicle.name,
-            //     lastDigits: imeiLastDigits.trim()
-            //   }
-            // });
+          const createUserResult = await createUserResponse.json();
 
-            await setActiveRegister({ session: signUpResult.createdSessionId });
-
-            console.log({ signUpResult: signUpResult.createdUserId });
-
-            const expireDt = vehicle?.expire_dt
-              ? new Date(vehicle.expire_dt).toISOString()
-              : new Date().toISOString();
-
-            try {
-              const createUserResponse = await fetch("/api/create-user", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  plate: plateNumber.trim(),
-                  is_active: true,
-                  expired: false,
-                  expired_date: expireDt, // o puedes establecer una fecha personalizada
-                  clerk_id: signUpResult.id?.toString(),
-                  clerk_created_user_id: signUpResult.createdUserId?.toString(),
-                }),
-              });
-
-              const createUserResult = await createUserResponse.json();
-
-              if (!createUserResult.success) {
-                console.log("createUser error:", createUserResult.message);
-              }
-            } catch (apiError) {
-              console.log("Error llamando a /api/create-user:", apiError);
-            }
-
-            return { success: true, isNewUser: true };
+          if (!createUserResult.success) {
+            console.log("createUser error:", createUserResult.message);
           }
-        } catch (signUpError) {
-          return { success: false, error: "Error en registro" };
+        } catch (apiError) {
+          console.log("Error llamando a /api/create-user:", apiError);
         }
-      }
 
-      throw signInError;
+        return { success: true, isNewUser: true };
+      }
+    } catch (signUpError) {
+      return { success: false, error: "Error en registro" };
     }
   };
 

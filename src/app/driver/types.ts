@@ -22,3 +22,21 @@ export interface DriverStore {
     isCancelLoading: boolean;
   };
 }
+
+export interface UserResponseType {
+  success: boolean;
+  message: string;
+  data: Data;
+}
+
+export interface Data {
+  id: string;
+  plate: string;
+  is_active: boolean;
+  expired: boolean;
+  expired_date: Date;
+  clerk_id: string;
+  clerk_created_user_id: string;
+  created_at: Date;
+  updated_at: Date;
+}

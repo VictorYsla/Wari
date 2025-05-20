@@ -73,6 +73,7 @@ export const AuthForm = ({
           </div>
         </div>
       </div>
+      <div id="clerk-captcha"></div>
       <div className="mt-16 flex justify-center">
         <button
           type="submit"
