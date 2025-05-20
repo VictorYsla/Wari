@@ -278,7 +278,6 @@ export const useDriver = () => {
         if (signInResult?.status === "complete" && setActiveLogin) {
           await setActiveLogin({ session: signInResult.createdSessionId });
           if (!isSameExpiredDate) {
-            console.log("Son fechas difernetes!!!");
             const updateUserResponse = await fetch("/api/update-user", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -291,7 +290,6 @@ export const useDriver = () => {
             });
 
             const updateUserResult = await updateUserResponse.json();
-            console.log({ updateUserResult: updateUserResult.data });
           }
           return { success: true, isNewUser: false };
         }
@@ -311,8 +309,6 @@ export const useDriver = () => {
       if (signUpResult?.status === "complete" && setActiveRegister) {
         await setActiveRegister({ session: signUpResult.createdSessionId });
 
-        console.log({ signUpResult: signUpResult.createdUserId });
-
         try {
           const createUserResponse = await fetch("/api/create-user", {
             method: "POST",
@@ -330,11 +326,8 @@ export const useDriver = () => {
           const createUserResult = await createUserResponse.json();
 
           if (!createUserResult.success) {
-            console.log("createUser error:", createUserResult.message);
           }
-        } catch (apiError) {
-          console.log("Error llamando a /api/create-user:", apiError);
-        }
+        } catch (apiError) {}
 
         return { success: true, isNewUser: true };
       }

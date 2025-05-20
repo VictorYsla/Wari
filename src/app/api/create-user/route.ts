@@ -22,7 +22,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.log("Error in create-user:", error);
     return NextResponse.json(
       {
         success: false,

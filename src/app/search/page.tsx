@@ -4,31 +4,60 @@ import React, { useState } from "react";
 import Logo from "@/assets/svgs/logo-01.svg";
 import SearchIcon from "@/assets/svgs/icon-magni-glass.svg";
 import Link from "next/link";
+import { Loader } from "lucide-react";
 
 // Simulación de base de datos de conductores activos
 const activeDrivers = ["ABC123", "XYZ789", "DEF456"];
 
 export default function SearchPage() {
+  const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResult, setSearchResult] = useState<{
     isActive: boolean;
     message: string;
   } | null>(null);
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSearch = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const trimmedQuery = searchQuery.trim();
     if (!trimmedQuery) return;
 
-    const isWariActive = activeDrivers.includes(trimmedQuery.toUpperCase());
+    setIsLoading(true); // empieza carga
 
-    setSearchResult({
-      isActive: isWariActive,
-      message: isWariActive
-        ? "Este vehículo es un Wari activo"
-        : "Este vehículo no es un Wari activo",
-    });
+    try {
+      const response = await fetch("/api/search-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plate: trimmedQuery }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success || !data.data) {
+        setSearchResult({
+          isActive: false,
+          message: "Este vehículo no está registrado en nuestro sistema",
+        });
+      } else {
+        const { is_active, is_expired } = data.data;
+        const isWariActive = is_active === true && is_expired === false;
+
+        setSearchResult({
+          isActive: isWariActive,
+          message: isWariActive
+            ? "Este vehículo es un Wari activo"
+            : "Este vehículo no es un Wari activo",
+        });
+      }
+    } catch (err) {
+      setSearchResult({
+        isActive: false,
+        message: "Hubo un error al buscar el vehículo",
+      });
+    } finally {
+      setIsLoading(false); // termina carga
+    }
   };
 
   return (
@@ -68,9 +97,14 @@ export default function SearchPage() {
 
             <button
               type="submit"
-              className="w-full md:w-2/3 bg-black hover:bg-[#3a3426] text-white py-4 rounded-4xl text-[15px] font-montserrat font-bold md:text-lg"
+              className="w-full md:w-2/3 bg-black hover:bg-[#3a3426] text-white py-4 rounded-4xl text-[15px] font-montserrat font-bold md:text-lg flex items-center justify-center"
+              disabled={isLoading}
             >
-              Buscar
+              {isLoading ? (
+                <Loader className="h-5 w-5 animate-spin" />
+              ) : (
+                "Buscar"
+              )}
             </button>
           </form>
         </div>

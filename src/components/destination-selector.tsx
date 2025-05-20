@@ -332,7 +332,6 @@ export function DestinationSelector({
           description: "No se pudo obtener tu ubicación",
           variant: "destructive",
         });
-        console.error(error);
       }
     );
   };
