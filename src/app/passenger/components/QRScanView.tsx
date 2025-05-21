@@ -89,6 +89,16 @@ export const QRScanView = ({
                   QR escaneado correctamente
                 </span>
               </div>
+              <div className="bg-yellow-100 dark:bg-yellow-800/60 dark:text-yellow-100 text-yellow-900 py-4 px-6 rounded-3xl mb-6 w-full border-l-4 border-yellow-500">
+                <span className="font-montserrat font-bold text-[15px] block">
+                  Nota para la Hackatón:
+                </span>
+                <p className="font-montserrat text-[14px] mt-1">
+                  Por favor utiliza una dirección de <strong>Huánuco</strong>{" "}
+                  para que el mapa no se aleje mucho. <br />
+                  <em>Ejemplo: Jirón Dámaso Beraún, Huánuco 10001, Perú</em>
+                </p>
+              </div>
               <DestinationSelector
                 onSelect={onDestinationSelect}
                 destination={destination}
