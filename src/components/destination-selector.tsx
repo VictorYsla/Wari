@@ -48,6 +48,7 @@ export function DestinationSelector({
   } | null>(null);
   const [isMapVisible, setIsMapVisible] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMap, setLoadingMap] = useState(false);
   const [searchResults, setSearchResults] = useState<
     google.maps.places.AutocompletePrediction[]
   >([]);
@@ -310,14 +311,18 @@ export function DestinationSelector({
       return;
     }
 
+    setLoadingMap(true);
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         const coords = { lat: latitude, lng: longitude };
         setUserLocation(coords);
         mapInstanceRef?.current?.panTo(coords);
+        setLoadingMap(false);
       },
       (error) => {
+        setLoadingMap(false);
         if (error.code === error.PERMISSION_DENIED) {
           toast({
             title: "Permiso de ubicación denegado",
@@ -401,12 +406,19 @@ export function DestinationSelector({
 
       {/* Map */}
       {isMapVisible && (
-        <div className="p-0 overflow-hidden border-2 border-black dark:border-gray-700 rounded-3xl">
+        <div className="p-0 overflow-hidden border-2 border-black dark:border-gray-700 rounded-3xl relative">
           <div
             ref={mapRef}
             className="w-full h-[250px] border-b border-black dark:border-gray-700 overflow-hidden"
           />
-          <div className="p-3  text-xs font-montserrat font-normal border-t border-black dark:border-gray-700">
+
+          {loadingMap && (
+            <div className="absolute top-0 left-0 w-full h-[250px] flex items-center justify-center bg-white/70 dark:bg-black/60 z-10">
+              <div className="w-8 h-8 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
+
+          <div className="p-3 text-xs font-montserrat font-normal border-t border-black dark:border-gray-700">
             <p>
               Haz clic en el mapa para seleccionar una
               <br />
