@@ -1,8 +1,8 @@
 import { ArrowLeftIcon, Check, Loader2 } from "lucide-react";
-import { QRCodeScanner } from "@/components/qr-code-scanner";
 import { DestinationSelector } from "@/components/destination-selector";
 import WhiteScanner from "@/assets/svgs/icon-white-scaner.svg";
 import WhiteCheck from "@/assets/svgs/icon-white-check.svg";
+import QRCodeScanner from "@/components/qr-code-scanner";
 
 interface QRScanViewProps {
   scannedTripId: string;

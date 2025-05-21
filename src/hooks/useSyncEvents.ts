@@ -68,7 +68,7 @@ export function useSyncEvents({
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, [toast]);
+  }, []);
 
   useEffect(() => {
     const handleTouchSync = () => {
