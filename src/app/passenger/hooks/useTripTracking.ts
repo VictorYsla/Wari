@@ -11,6 +11,7 @@ import useTripSocket from "@/hooks/useTripSocket";
 import { useSearchParams } from "next/navigation";
 import { Trip } from "@/app/types/types";
 import { useDetectConnectionStability } from "@/hooks/useDetectConnectionStability";
+import { useSyncEvents } from "@/hooks/useSyncEvents";
 
 export const useTripTracking = () => {
   const { toast } = useToast();
@@ -238,6 +239,12 @@ export const useTripTracking = () => {
 
   useDetectConnectionStability(forceReconnect, silentlyUpdateTripData);
 
+  useSyncEvents({
+    forceReconnect,
+    silentlySync: silentlyUpdateTripData,
+    isConnected,
+  });
+
   useEffect(() => {
     // if (!tripData?.is_active && !tripData?.grace_period_end_time) return;
     // el viaje está activo y el periodo es 0 este pasará y causará que el viaje se cancele
@@ -271,67 +278,67 @@ export const useTripTracking = () => {
     };
   }, [tripData?.is_active, tripData?.grace_period_end_time]);
 
-  useEffect(() => {
-    const handleFocus = () => {
-      forceReconnect();
-      silentlyUpdateTripData();
-    };
+  // useEffect(() => {
+  //   const handleFocus = () => {
+  //     forceReconnect();
+  //     silentlyUpdateTripData();
+  //   };
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        forceReconnect();
-        silentlyUpdateTripData();
-      }
-    };
+  //   const handleVisibilityChange = () => {
+  //     if (document.visibilityState === "visible") {
+  //       forceReconnect();
+  //       silentlyUpdateTripData();
+  //     }
+  //   };
 
-    const handleOnline = () => {
-      toast({
-        title: "Conexión restaurada",
-        description: "Sincronizando datos",
-        variant: "informative",
-      });
-      forceReconnect();
-      silentlyUpdateTripData();
-    };
+  //   const handleOnline = () => {
+  //     toast({
+  //       title: "Conexión restaurada",
+  //       description: "Sincronizando datos",
+  //       variant: "informative",
+  //     });
+  //     forceReconnect();
+  //     silentlyUpdateTripData();
+  //   };
 
-    const handleOffline = () => {
-      toast({
-        title: "Sin conexión de internet",
-        description: "Los datos se actualizarán cuando la conexión retorne",
-        variant: "destructive",
-      });
-      // Aquí podrías mostrar un mensaje al usuario, si quieres
-    };
+  //   const handleOffline = () => {
+  //     toast({
+  //       title: "Sin conexión de internet",
+  //       description: "Los datos se actualizarán cuando la conexión retorne",
+  //       variant: "destructive",
+  //     });
+  //     // Aquí podrías mostrar un mensaje al usuario, si quieres
+  //   };
 
-    window.addEventListener("focus", handleFocus);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
+  //   window.addEventListener("focus", handleFocus);
+  //   document.addEventListener("visibilitychange", handleVisibilityChange);
+  //   window.addEventListener("online", handleOnline);
+  //   window.addEventListener("offline", handleOffline);
 
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
+  //   return () => {
+  //     window.removeEventListener("focus", handleFocus);
+  //     document.removeEventListener("visibilitychange", handleVisibilityChange);
+  //     window.removeEventListener("online", handleOnline);
+  //     window.removeEventListener("offline", handleOffline);
+  //   };
+  // }, []);
 
-  useEffect(() => {
-    const handleTouchSync = () => {
-      if (!isConnected) {
-        forceReconnect();
-        silentlyUpdateTripData();
-      }
-    };
+  // useEffect(() => {
+  //   const handleTouchSync = () => {
+  //     if (!isConnected) {
+  //       forceReconnect();
+  //       silentlyUpdateTripData();
+  //     }
+  //   };
 
-    window.addEventListener("touchend", handleTouchSync);
-    window.addEventListener("click", handleTouchSync);
+  //   window.addEventListener("touchend", handleTouchSync);
+  //   window.addEventListener("click", handleTouchSync);
 
-    return () => {
-      window.removeEventListener("touchend", handleTouchSync);
-      window.removeEventListener("click", handleTouchSync);
-    };
-  }, [isConnected]);
+  //   return () => {
+  //     window.removeEventListener("touchend", handleTouchSync);
+  //     window.removeEventListener("click", handleTouchSync);
+  //   };
+  // }, [isConnected]);
 
   return {
     tripIdentifier,

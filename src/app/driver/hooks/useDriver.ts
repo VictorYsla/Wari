@@ -7,6 +7,7 @@ import { useAppStore } from "@/hooks/useAppStore";
 import { NetworkInformation } from "@/app/passenger/types";
 import { useDetectConnectionStability } from "@/hooks/useDetectConnectionStability";
 import { UserResponseType } from "../types";
+import { useSyncEvents } from "@/hooks/useSyncEvents";
 
 export const useDriver = () => {
   const { toast } = useToast();
@@ -376,6 +377,11 @@ export const useDriver = () => {
   };
 
   useDetectConnectionStability(forceReconnect, silentlyRestoreTripSession);
+  useSyncEvents({
+    forceReconnect,
+    silentlySync: silentlyRestoreTripSession,
+    isConnected,
+  });
 
   useEffect(() => {
     const loadInitialState = async () => {
@@ -421,61 +427,61 @@ export const useDriver = () => {
     loadInitialState();
   }, []);
 
-  useEffect(() => {
-    const handleFocus = () => {
-      forceReconnect();
-      silentlyRestoreTripSession();
-    };
+  // useEffect(() => {
+  //   const handleFocus = () => {
+  //     forceReconnect();
+  //     silentlyRestoreTripSession();
+  //   };
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        forceReconnect();
-      }
-    };
+  //   const handleVisibilityChange = () => {
+  //     if (document.visibilityState === "visible") {
+  //       forceReconnect();
+  //     }
+  //   };
 
-    const handleOnline = () => {
-      forceReconnect();
-      silentlyRestoreTripSession();
-    };
+  //   const handleOnline = () => {
+  //     forceReconnect();
+  //     silentlyRestoreTripSession();
+  //   };
 
-    const handleOffline = () => {
-      toast({
-        title: "Sin conexión de internet",
-        description: "Los datos se actualizarán cuando la conexión retorne",
-        variant: "destructive",
-      });
-      // Aquí podrías mostrar un mensaje al usuario, si quieres
-    };
+  //   const handleOffline = () => {
+  //     toast({
+  //       title: "Sin conexión de internet",
+  //       description: "Los datos se actualizarán cuando la conexión retorne",
+  //       variant: "destructive",
+  //     });
+  //     // Aquí podrías mostrar un mensaje al usuario, si quieres
+  //   };
 
-    window.addEventListener("focus", handleFocus);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
+  //   window.addEventListener("focus", handleFocus);
+  //   document.addEventListener("visibilitychange", handleVisibilityChange);
+  //   window.addEventListener("online", handleOnline);
+  //   window.addEventListener("offline", handleOffline);
 
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
+  //   return () => {
+  //     window.removeEventListener("focus", handleFocus);
+  //     document.removeEventListener("visibilitychange", handleVisibilityChange);
+  //     window.removeEventListener("online", handleOnline);
+  //     window.removeEventListener("offline", handleOffline);
+  //   };
+  // }, []);
 
-  useEffect(() => {
-    const handleTouchSync = () => {
-      if (!isConnected) {
-        forceReconnect();
-        silentlyRestoreTripSession();
-      }
-    };
+  // useEffect(() => {
+  //   const handleTouchSync = () => {
+  //     if (!isConnected) {
+  //       forceReconnect();
+  //       silentlyRestoreTripSession();
+  //     }
+  //   };
 
-    window.addEventListener("touchend", handleTouchSync);
-    window.addEventListener("click", handleTouchSync);
+  //   window.addEventListener("touchend", handleTouchSync);
+  //   window.addEventListener("click", handleTouchSync);
 
-    return () => {
-      window.removeEventListener("touchend", handleTouchSync);
-      window.removeEventListener("click", handleTouchSync);
-    };
-  }, [isConnected]);
+  //   return () => {
+  //     window.removeEventListener("touchend", handleTouchSync);
+  //     window.removeEventListener("click", handleTouchSync);
+  //   };
+  // }, [isConnected]);
 
   const tripState = {
     activeTrip,
