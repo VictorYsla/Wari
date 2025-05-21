@@ -1,5 +1,4 @@
 import { CircleArrowLeft, CircleX, RotateCw } from "lucide-react";
-import { useRouter } from "next/router";
 
 interface ErrorViewProps {
   tripStatus: {
@@ -10,7 +9,6 @@ interface ErrorViewProps {
 }
 
 export const ErrorView = ({ tripStatus, onGoBack }: ErrorViewProps) => {
-  const router = useRouter();
   return (
     <div className="min-h-screen bg-wari-gray flex flex-col items-center px-4 py-8 md:py-12">
       <div className="bg-white rounded-3xl w-full max-w-screen-md  py-16 px-6 flex flex-col items-center">
@@ -39,7 +37,7 @@ export const ErrorView = ({ tripStatus, onGoBack }: ErrorViewProps) => {
 
               <button
                 className="w-full md:w-80 bg-wari-red hover:bg-red-400 text-white text-[15px] font-montserrat font-bold py-3 px-8 rounded-4xl flex items-center justify-center gap-2 disabled:opacity-50"
-                onClick={() => router.reload()}
+                onClick={() => window.location.reload()}
               >
                 <RotateCw className="h-6 w-6 stroke-[2.5] text-white" />
                 Intentar nuevamente
