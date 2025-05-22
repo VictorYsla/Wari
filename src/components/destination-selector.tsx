@@ -96,7 +96,7 @@ export function DestinationSelector({
       window.google.maps
     ) {
       // Default to a central location if no coordinates are set
-      const defaultLocation = coordinates || { lat: -12.0464, lng: -77.0428 }; // Lima, Peru
+      const defaultLocation = coordinates || { lat: -9.9306, lng: -76.2422 }; // Plaza de Armas, Huánuco, Perú
 
       const mapOptions = {
         center: defaultLocation,
