@@ -9,6 +9,8 @@ import MagnificanGlasses from "@/assets/svgs/icon-magni-glass.svg";
 import Close from "@/assets/svgs/icon-close.svg";
 import MapPinYellow from "@/assets/svgs/icon-mappin-yellow.svg";
 import Rocket from "@/assets/svgs/icon-rocket.svg";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 declare global {
   interface Window {
@@ -68,6 +70,7 @@ export function DestinationSelector({
   );
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isLocationCancelledRef = useRef(false);
+  const locationButtonRef = useRef<HTMLButtonElement>(null);
 
   const { toast } = useToast();
 
@@ -346,6 +349,30 @@ export function DestinationSelector({
     );
   };
 
+  useEffect(() => {
+    if (
+      !localStorage.getItem("seen-location-tour") &&
+      locationButtonRef.current
+    ) {
+      const driverObj = driver();
+      driverObj.highlight({
+        element: locationButtonRef.current,
+        popover: {
+          title: "Ubicación actual",
+          description: "Presiona aquí para ir a tu ubicación actual",
+          showButtons: ["next"],
+          nextBtnText: "Entendido",
+          onNextClick: () => {
+            console.log("Cerrado con 'Entendido'");
+            driverObj.destroy();
+          },
+        },
+      });
+
+      localStorage.setItem("seen-location-tour", "true");
+    }
+  }, []);
+
   return (
     <div className="space-y-4 w-full">
       <div className="space-y-2">
@@ -380,7 +407,11 @@ export function DestinationSelector({
                 </button>
               )}
             </div>
-            <button type="button" onClick={getCurrentLocation}>
+            <button
+              ref={locationButtonRef}
+              type="button"
+              onClick={getCurrentLocation}
+            >
               <MapPinYellow className="h-10 w-10" />
             </button>
           </div>
