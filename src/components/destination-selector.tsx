@@ -67,6 +67,7 @@ export function DestinationSelector({
     null
   );
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isLocationCancelledRef = useRef(false);
 
   const { toast } = useToast();
 
@@ -245,6 +246,7 @@ export function DestinationSelector({
           // We need to wait for the map to be initialized
           setTimeout(() => {
             if (mapInstanceRef.current) {
+              isLocationCancelledRef.current = true;
               addMarker(newCoords);
             }
           }, 100);
@@ -312,13 +314,16 @@ export function DestinationSelector({
     }
 
     setLoadingMap(true);
+    isLocationCancelledRef.current = false;
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         const coords = { lat: latitude, lng: longitude };
         setUserLocation(coords);
-        mapInstanceRef?.current?.panTo(coords);
+        if (!isLocationCancelledRef.current) {
+          mapInstanceRef?.current?.panTo(coords);
+        }
         setLoadingMap(false);
       },
       (error) => {
@@ -412,9 +417,15 @@ export function DestinationSelector({
             className="w-full h-[250px] border-b border-black dark:border-gray-700 overflow-hidden"
           />
 
+          {/* {loadingMap && (
+            <div className="absolute top-2 right-2 z-10">
+              <div className="w-5 h-5 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+            </div>
+          )} */}
+
           {loadingMap && (
-            <div className="absolute top-0 left-0 w-full h-[250px] flex items-center justify-center bg-white/70 dark:bg-black/60 z-10">
-              <div className="w-8 h-8 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+            <div className="absolute top-2 right-2 z-10 bg-white/80 dark:bg-black/60 rounded-full p-1 shadow-md">
+              <div className="w-5 h-5 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
             </div>
           )}
 
