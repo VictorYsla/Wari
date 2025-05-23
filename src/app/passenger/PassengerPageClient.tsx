@@ -302,12 +302,15 @@ export default function PassengerPage() {
       const url = `${window.location.origin}/passenger?tripId=${tripIdentifier.tripId}`;
       const message = `Puedes seguir mi viaje en tiempo real aquí:\n ${url}`;
 
-      if (
-        navigator.canShare &&
-        captureFile &&
-        navigator.canShare({ files: [captureFile] })
-      ) {
-        if (!isValidMobileDevice()) {
+      if (isValidMobileDevice()) {
+        if (
+          !captureFile &&
+          navigator.canShare &&
+          navigator.canShare({
+            title: "Sigue mi viaje 🚗",
+            text: message,
+          })
+        ) {
           await navigator.share({
             title: "Sigue mi viaje 🚗",
             text: message,
@@ -324,20 +327,26 @@ export default function PassengerPage() {
           return;
         }
 
-        await navigator.share({
-          title: "Sigue mi viaje 🚗",
-          text: message,
-          files: [captureFile],
-        });
+        if (
+          navigator.canShare &&
+          captureFile &&
+          navigator.canShare({ files: [captureFile] })
+        ) {
+          await navigator.share({
+            title: "Sigue mi viaje 🚗",
+            text: message,
+            files: [captureFile],
+          });
 
-        const updateResponse = await fetch(`/api/update-trip`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            id: tripIdentifier?.tripId,
-            has_been_shared: true,
-          }),
-        });
+          const updateResponse = await fetch(`/api/update-trip`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: tripIdentifier?.tripId,
+              has_been_shared: true,
+            }),
+          });
+        }
       } else {
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
           `\n🚗 *Datos del vehículo:*\n• Placa: ${
