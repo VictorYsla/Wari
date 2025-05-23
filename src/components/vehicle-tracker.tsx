@@ -166,7 +166,9 @@ export function VehicleTracker({
 
       map.addListener("tilesloaded", () => {
         map.addListener("idle", () => {
-          setIsMapLoaded(true);
+          setTimeout(() => {
+            setIsMapLoaded(true);
+          }, 10000);
         });
       });
 
