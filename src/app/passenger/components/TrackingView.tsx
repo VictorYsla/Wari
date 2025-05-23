@@ -117,12 +117,6 @@ export const TrackingView = ({
           setIsMapLoaded={setIsMapLoaded}
           onShareTracking={onShareTracking}
           isShareLoading={isShareLoading}
-          isShareDisable={
-            isShareLoading ||
-            !isConnected ||
-            !vehicleDetails?.plate_number ||
-            !vehicleDetails.model
-          }
         />
 
         <button

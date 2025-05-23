@@ -18,17 +18,17 @@ import {
   RefreshCcw,
   Loader2,
   Share2,
+  Image,
 } from "lucide-react";
 import { useJsApiLoader } from "@react-google-maps/api";
 import type { Destination } from "./destination-selector";
 import { googleMapsApiKey } from "@/app/api/helpers";
 import { convertUtcToDeviceTime } from "@/helpers/time";
-import { Button } from "./ui/button";
+import { isValidMobileDevice } from "@/helpers/isValidMobileDevice";
 
 interface VehicleTrackerProps {
   vehicleKey: string;
   destination?: Destination | null;
-  isShareDisable: boolean;
   isShareLoading: boolean;
   onShareTracking: () => void;
   setIsMapLoaded: Dispatch<SetStateAction<boolean>>;
@@ -58,7 +58,6 @@ declare global {
 export function VehicleTracker({
   vehicleKey,
   destination,
-  isShareDisable,
   isShareLoading,
   onShareTracking,
   setIsMapLoaded,
@@ -339,17 +338,17 @@ export function VehicleTracker({
         <button
           onClick={onShareTracking}
           className="w-full md:w-80 md:mx-auto bg-wari-red hover:bg-red-400 text-white text-[15px] font-montserrat font-bold py-3 px-8 rounded-4xl flex items-center justify-center gap-2 disabled:opacity-50 mt-4 md:mt-12"
-          disabled={isShareDisable}
+          // disabled={isShareDisable}
         >
-          {isShareLoading ? (
+          <Share2 className="h-6 w-6 stroke-[2.5] text-white" />
+          Compartir seguimiento
+          {isValidMobileDevice() && (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin text-white" />
-              Cargando...
-            </>
-          ) : (
-            <>
-              <Share2 className="h-6 w-6 stroke-[2.5] text-white" />
-              Compartir seguimiento
+              {isShareLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin text-white" />
+              ) : (
+                <Image className="mr-2 h-4 w-4  text-white" />
+              )}
             </>
           )}
         </button>

@@ -18,6 +18,7 @@ import { useDestination } from "./hooks/useDestination";
 
 // Types
 import { TripStatusType, Destination } from "./types";
+import { isValidMobileDevice } from "@/helpers/isValidMobileDevice";
 
 export default function PassengerPage() {
   // Hooks
@@ -194,7 +195,7 @@ export default function PassengerPage() {
         tripId: updateTripResponseType.data.id,
       });
 
-      getVehicleByImei(updateTripResponseType?.data.imei);
+      await getVehicleByImei(updateTripResponseType?.data.imei);
 
       const url = `${window.location.origin}/passenger?tripId=${updateTripResponseType.data.id}`;
       window.location.href = url;
@@ -289,22 +290,9 @@ export default function PassengerPage() {
 
   const handleShareTracking = async () => {
     if (!tripIdentifier?.tripId) {
-      setIsShareLoading(true);
-
       toast({
         title: "Error",
         description: "No hay un viaje activo para compartir",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const isAndroid = /android/i.test(navigator.userAgent);
-
-    if (!captureDataUrl && !isAndroid) {
-      toast({
-        title: "Error",
-        description: "La captura aún no está lista. Espera unos segundos.",
         variant: "destructive",
       });
       return;
@@ -317,9 +305,25 @@ export default function PassengerPage() {
       if (
         navigator.canShare &&
         captureFile &&
-        navigator.canShare({ files: [captureFile] }) &&
-        !isAndroid
+        navigator.canShare({ files: [captureFile] })
       ) {
+        if (!isValidMobileDevice()) {
+          await navigator.share({
+            title: "Sigue mi viaje 🚗",
+            text: message,
+          });
+          const updateResponse = await fetch(`/api/update-trip`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: tripIdentifier?.tripId,
+              has_been_shared: true,
+            }),
+          });
+
+          return;
+        }
+
         await navigator.share({
           title: "Sigue mi viaje 🚗",
           text: message,
@@ -334,12 +338,6 @@ export default function PassengerPage() {
             has_been_shared: true,
           }),
         });
-
-        toast({
-          title: "Compartido",
-          description: "¡Tu captura y link fueron compartidos!",
-        });
-        setIsShareLoading(false);
       } else {
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
           `\n🚗 *Datos del vehículo:*\n• Placa: ${
@@ -356,11 +354,7 @@ export default function PassengerPage() {
           }),
         });
       }
-
-      setIsShareLoading(false);
-    } catch (error) {
-      setIsShareLoading(false);
-    }
+    } catch (error) {}
   };
 
   const getTripData = async () => {
@@ -393,7 +387,7 @@ export default function PassengerPage() {
         throw new Error("No se encontró información del viaje");
       }
 
-      getVehicleByImei(tripResponse?.data.imei);
+      await getVehicleByImei(tripResponse?.data.imei);
 
       if (tripResponse.data.is_completed) {
         setTripStatus({
@@ -469,9 +463,7 @@ export default function PassengerPage() {
   };
 
   useEffect(() => {
-    const isAndroid = /android/i.test(navigator.userAgent);
-
-    if (!isAndroid) {
+    if (isValidMobileDevice()) {
       setIsShareLoading(true);
       const captureScreen = async () => {
         try {
