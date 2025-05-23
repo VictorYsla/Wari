@@ -83,6 +83,17 @@ export default function RootLayout({ children }: RootLayoutProps) {
             {`
               {
                 "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": "Wari",
+                "url": "https://wari.hawkperu.com",
+                "logo": "https://wari.hawkperu.com/logo.png"
+              }
+            `}
+          </script>
+          <script type="application/ld+json">
+            {`
+              {
+                "@context": "https://schema.org",
                 "@type": "WebSite",
                 "name": "Wari",
                 "alternateName": "Wari - seguimiento vehicular",
