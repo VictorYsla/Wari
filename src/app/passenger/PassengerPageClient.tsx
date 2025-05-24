@@ -503,6 +503,9 @@ export default function PassengerPage() {
 
       if (isMapLoaded) {
         captureScreen();
+        setTimeout(() => {
+          captureScreen();
+        }, 1000);
       }
     }
   }, [isMapLoaded]);
