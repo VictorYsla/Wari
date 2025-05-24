@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import * as htmlToImage from "html-to-image";
 
@@ -477,11 +477,22 @@ export default function PassengerPage() {
     window.location.href = url;
   };
 
+  const lastReloadedId = useRef("");
+
+  const [key, setKey] = useState(0);
+
   useEffect(() => {
-    if (isValidMobileDevice()) {
+    if (isMapLoaded) {
       setIsShareLoading(true);
+
       const captureScreen = async () => {
         try {
+          // Forzar re-render cambiando la key
+          setKey((prev) => prev + 1);
+
+          // Esperar un pequeño delay para que el DOM actualice
+          await new Promise((resolve) => setTimeout(resolve, 10000));
+
           const element = document.body;
           const dataUrl = await htmlToImage.toPng(element, {
             cacheBust: true,
@@ -494,31 +505,15 @@ export default function PassengerPage() {
             type: "image/png",
           });
 
-          setTimeout(async () => {
-            const element = document.body;
-            const dataUrl = await htmlToImage.toPng(element, {
-              cacheBust: true,
-              skipFonts: true,
-            });
-
-            const response = await fetch(dataUrl);
-            const blob = await response.blob();
-            const generatedFile = new File([blob], "captura-viaje.png", {
-              type: "image/png",
-            });
-            setCaptureFile(generatedFile);
-            setIsShareLoading(false);
-          }, 60000);
+          setCaptureFile(generatedFile);
         } catch (error) {
-          setIsShareLoading(false);
+          console.error(error);
         } finally {
-          // setIsShareLoading(false);
+          setIsShareLoading(false);
         }
       };
 
-      if (isMapLoaded) {
-        captureScreen();
-      }
+      captureScreen();
     }
   }, [isMapLoaded]);
 
@@ -559,6 +554,7 @@ export default function PassengerPage() {
   if (isTracking && tripIdentifier) {
     return (
       <TrackingView
+        key={key}
         destination={destination}
         vehicleDetails={vehicleDetails}
         countdown={countdown}
