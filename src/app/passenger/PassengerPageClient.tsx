@@ -494,18 +494,30 @@ export default function PassengerPage() {
             type: "image/png",
           });
 
-          setCaptureFile(generatedFile);
+          setTimeout(async () => {
+            const element = document.body;
+            const dataUrl = await htmlToImage.toPng(element, {
+              cacheBust: true,
+              skipFonts: true,
+            });
+
+            const response = await fetch(dataUrl);
+            const blob = await response.blob();
+            const generatedFile = new File([blob], "captura-viaje.png", {
+              type: "image/png",
+            });
+            setCaptureFile(generatedFile);
+            setIsShareLoading(false);
+          }, 60000);
         } catch (error) {
-        } finally {
           setIsShareLoading(false);
+        } finally {
+          // setIsShareLoading(false);
         }
       };
 
       if (isMapLoaded) {
         captureScreen();
-        setTimeout(() => {
-          captureScreen();
-        }, 1000);
       }
     }
   }, [isMapLoaded]);
