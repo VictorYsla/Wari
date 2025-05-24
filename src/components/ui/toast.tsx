@@ -31,11 +31,11 @@ const toastVariants = cva(
       variant: {
         default: "border bg-background text-foreground",
         destructive:
-          "destructive group rounded-3xl border-wari-red bg-white text-wari-black font-montserrat-regular",
+          "destructive group rounded-3xl border-wari-red bg-white text-wari-black font-montserrat",
         informative:
-          "informative group rounded-3xl border-wari-yellow bg-white text-wari-black font-montserrat-regular",
+          "informative group rounded-3xl border-wari-yellow bg-white text-wari-black font-montserrat",
         positive:
-          "positive group rounded-3xl border-wari-green bg-white text-wari-black font-montserrat-regular",
+          "positive group rounded-3xl border-wari-green bg-white text-wari-black font-montserrat",
       },
     },
     defaultVariants: {

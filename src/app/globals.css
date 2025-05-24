@@ -132,3 +132,11 @@ body {
   object-fit: cover;
   border-radius: 0.5rem;
 }
+
+:root {
+  --font-montserrat: "Montserrat", sans-serif;
+}
+
+.font-montserrat {
+  font-family: var(--font-montserrat);
+}

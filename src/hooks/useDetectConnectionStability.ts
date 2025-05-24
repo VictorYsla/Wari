@@ -19,7 +19,7 @@ export function useDetectConnectionStability(
           connection.effectiveType === "3g" ||
           (connection.effectiveType === "4g" &&
             connection.rtt !== undefined &&
-            connection.rtt > 500);
+            connection.rtt > 700);
 
         if (isUnstable) {
           toast({
@@ -53,11 +53,11 @@ export function useDetectConnectionStability(
 
         const start = performance.now();
         try {
-          await fetch("api/ping", { method: "HEAD", cache: "no-cache" });
+          await fetch("api/ping", { method: "POST", cache: "no-cache" });
           const end = performance.now();
           const rtt = end - start;
 
-          if (rtt > 500) {
+          if (rtt > 700) {
             toast({
               title: "Conexión a internet inestable",
               description:

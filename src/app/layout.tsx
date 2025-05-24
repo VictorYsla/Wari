@@ -126,12 +126,21 @@ export default function RootLayout({ children }: RootLayoutProps) {
           />
           <link rel="manifest" href="/site.webmanifest" />
 
+          <link
+            rel="preload"
+            href="/fonts/Montserrat.woff2"
+            as="font"
+            type="font/woff2"
+            crossOrigin="anonymous"
+          />
+
           <script
             src={`https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places`}
             async
             defer
           ></script>
         </head>
+
         <body>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
             {children}

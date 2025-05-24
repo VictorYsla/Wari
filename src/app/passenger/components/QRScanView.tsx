@@ -59,7 +59,7 @@ export const QRScanView = ({
                   <span className="block md:hidden">
                     Selecciona
                     <br />
-                    el Destino
+                    el destino
                   </span>
                   <span className="hidden md:inline">
                     Selecciona el Destino
