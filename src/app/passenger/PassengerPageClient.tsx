@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import * as htmlToImage from "html-to-image";
 
 // Components
 import { LoadingView } from "../../components/LoadingView";
@@ -51,8 +50,6 @@ export default function PassengerPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isButtonLoading, setIsButtonLoading] = useState(false);
   const [vehicleDetails, setVehicleDetails] = useState<any>(null);
-  const [isShareLoading, setIsShareLoading] = useState(false);
-  const [captureFile, setCaptureFile] = useState<File | null>(null);
 
   // Refs and hooks
   const { toast } = useToast();
@@ -310,7 +307,6 @@ export default function PassengerPage() {
 
       if (isValidMobileDevice()) {
         if (
-          !captureFile &&
           navigator.canShare &&
           navigator.canShare({
             title: "Sigue mi viaje 🚗",
@@ -331,27 +327,6 @@ export default function PassengerPage() {
           });
 
           return;
-        }
-
-        if (
-          navigator.canShare &&
-          captureFile &&
-          navigator.canShare({ files: [captureFile] })
-        ) {
-          await navigator.share({
-            title: "Sigue mi viaje 🚗",
-            text: message,
-            files: [captureFile],
-          });
-
-          const updateResponse = await fetch(`/api/update-trip`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              id: tripIdentifier?.tripId,
-              has_been_shared: true,
-            }),
-          });
         }
       } else {
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
@@ -478,36 +453,6 @@ export default function PassengerPage() {
   };
 
   useEffect(() => {
-    if (isValidMobileDevice()) {
-      setIsShareLoading(true);
-      const captureScreen = async () => {
-        try {
-          const element = document.body;
-          const dataUrl = await htmlToImage.toPng(element, {
-            cacheBust: true,
-            skipFonts: true,
-          });
-
-          const response = await fetch(dataUrl);
-          const blob = await response.blob();
-          const generatedFile = new File([blob], "captura-viaje.png", {
-            type: "image/png",
-          });
-
-          setCaptureFile(generatedFile);
-        } catch (error) {
-        } finally {
-          setIsShareLoading(false);
-        }
-      };
-
-      if (isMapLoaded) {
-        captureScreen();
-      }
-    }
-  }, [isMapLoaded]);
-
-  useEffect(() => {
     if (tripIdParam) {
       getTripData();
       window.onpopstate = () => {
@@ -548,7 +493,6 @@ export default function PassengerPage() {
         vehicleDetails={vehicleDetails}
         countdown={countdown}
         isConnected={isConnected}
-        isShareLoading={isShareLoading}
         isButtonLoading={isButtonLoading}
         tripIdentifier={tripIdentifier}
         tripData={tripData}

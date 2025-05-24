@@ -14,12 +14,10 @@ import { useJsApiLoader } from "@react-google-maps/api";
 import type { Destination } from "./destination-selector";
 import { googleMapsApiKey } from "@/app/api/helpers";
 import { convertUtcToDeviceTime } from "@/helpers/time";
-import { isValidMobileDevice } from "@/helpers/isValidMobileDevice";
 
 interface VehicleTrackerProps {
   vehicleKey: string;
   destination?: Destination | null;
-  isShareLoading: boolean;
   onShareTracking: () => void;
   setIsMapLoaded: Dispatch<SetStateAction<boolean>>;
 }
@@ -48,7 +46,6 @@ declare global {
 export function VehicleTracker({
   vehicleKey,
   destination,
-  isShareLoading,
   onShareTracking,
   setIsMapLoaded,
 }: VehicleTrackerProps) {
@@ -324,15 +321,6 @@ export function VehicleTracker({
         >
           <Share2 className="h-6 w-6 stroke-[2.5] text-white" />
           Compartir seguimiento
-          {isValidMobileDevice() && (
-            <>
-              {isShareLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin text-white" />
-              ) : (
-                <Image className="mr-2 h-4 w-4  text-white" />
-              )}
-            </>
-          )}
         </button>
       </div>
     </div>

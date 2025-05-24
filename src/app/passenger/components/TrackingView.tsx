@@ -14,7 +14,6 @@ interface TrackingViewProps {
   };
   countdown: number;
   isConnected: boolean;
-  isShareLoading: boolean;
   isButtonLoading: boolean;
   tripData: Trip | null;
   tripIdentifier: {
@@ -31,7 +30,6 @@ export const TrackingView = ({
   vehicleDetails,
   countdown,
   isConnected,
-  isShareLoading,
   isButtonLoading,
   tripIdentifier,
   tripData,
@@ -116,7 +114,6 @@ export const TrackingView = ({
           destination={destination}
           setIsMapLoaded={setIsMapLoaded}
           onShareTracking={onShareTracking}
-          isShareLoading={isShareLoading}
         />
 
         <button
