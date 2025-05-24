@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import * as htmlToImage from "html-to-image";
 
@@ -477,22 +477,11 @@ export default function PassengerPage() {
     window.location.href = url;
   };
 
-  const lastReloadedId = useRef("");
-
-  const [key, setKey] = useState(0);
-
   useEffect(() => {
-    if (isMapLoaded) {
+    if (isValidMobileDevice()) {
       setIsShareLoading(true);
-
       const captureScreen = async () => {
         try {
-          // Forzar re-render cambiando la key
-          setKey((prev) => prev + 1);
-
-          // Esperar un pequeño delay para que el DOM actualice
-          await new Promise((resolve) => setTimeout(resolve, 10000));
-
           const element = document.body;
           const dataUrl = await htmlToImage.toPng(element, {
             cacheBust: true,
@@ -507,13 +496,14 @@ export default function PassengerPage() {
 
           setCaptureFile(generatedFile);
         } catch (error) {
-          console.error(error);
         } finally {
           setIsShareLoading(false);
         }
       };
 
-      captureScreen();
+      if (isMapLoaded) {
+        captureScreen();
+      }
     }
   }, [isMapLoaded]);
 
@@ -554,7 +544,6 @@ export default function PassengerPage() {
   if (isTracking && tripIdentifier) {
     return (
       <TrackingView
-        key={key}
         destination={destination}
         vehicleDetails={vehicleDetails}
         countdown={countdown}
