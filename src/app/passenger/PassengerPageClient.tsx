@@ -52,7 +52,6 @@ export default function PassengerPage() {
   const [isButtonLoading, setIsButtonLoading] = useState(false);
   const [vehicleDetails, setVehicleDetails] = useState<any>(null);
   const [isShareLoading, setIsShareLoading] = useState(false);
-  const [captureDataUrl, setCaptureDataUrl] = useState<string | null>(null);
   const [captureFile, setCaptureFile] = useState<File | null>(null);
 
   // Refs and hooks
@@ -487,8 +486,6 @@ export default function PassengerPage() {
             cacheBust: true,
             skipFonts: true,
           });
-
-          setCaptureDataUrl(dataUrl);
 
           const response = await fetch(dataUrl);
           const blob = await response.blob();
