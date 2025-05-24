@@ -1,16 +1,6 @@
 "use client";
 
-import {
-  useState,
-  useEffect,
-  useRef,
-  ReactNode,
-  MouseEventHandler,
-  SetStateAction,
-  Dispatch,
-} from "react";
-import { Card } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect, useRef, SetStateAction, Dispatch } from "react";
 import {
   MapPin,
   Clock,
@@ -65,7 +55,6 @@ export function VehicleTracker({
   const [location, setLocation] = useState<LocationData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const vehicleMarkerRef = useRef<google.maps.Marker | null>(null);
