@@ -155,7 +155,7 @@ export function DestinationSelector({
       autocompleteServiceRef.current?.getPlacePredictions(
         {
           input: address,
-          // componentRestrictions: { country: "pe" }, // Restrict to Peru, change as needed
+          componentRestrictions: { country: "pe" },
           location: userLocation
             ? new window.google.maps.LatLng(userLocation.lat, userLocation.lng)
             : undefined,
@@ -302,8 +302,13 @@ export function DestinationSelector({
 
   const clearSearch = () => {
     setAddress("");
+    setCoordinates(null);
     setSearchResults([]);
     setShowResults(false);
+    if (markerRef.current) {
+      markerRef.current.setMap(null);
+      markerRef.current = null;
+    }
   };
 
   const getCurrentLocation = () => {

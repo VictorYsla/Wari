@@ -71,10 +71,10 @@ export const QRScanView = ({
             </h1>
 
             {!scannedTripId && (
-              <p className="font-montserrat font-normal text-base mt-4 leading-4">
-                Escanea el código QR e ingresa el
+              <p className="font-montserrat font-normal text-base leading-4 mt-10">
+                Apunta la cámara al código QR del
                 <br />
-                destino para iniciar el seguimiento
+                vehículo para iniciar el seguimiento.
               </p>
             )}
           </div>
@@ -105,14 +105,6 @@ export const QRScanView = ({
                 </button>
               </div>
             </>
-          )}
-
-          {!scannedTripId && (
-            <p className="font-montserrat font-normal text-sm leading-4 mt-10">
-              Apunta la cámara al código QR del
-              <br />
-              vehículo para iniciar el seguimiento.
-            </p>
           )}
         </div>
       </div>
