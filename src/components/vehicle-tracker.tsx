@@ -271,7 +271,7 @@ export function VehicleTracker({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full">
       <div className="w-full h-[300px] rounded-lg bg-muted/30">
         {!isLoaded ? (
           <div className="flex items-center justify-center h-full">

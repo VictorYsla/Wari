@@ -302,18 +302,24 @@ export default function PassengerPage() {
       const url = `${window.location.origin}/passenger?tripId=${tripIdentifier.tripId}`;
       const message = `Puedes seguir mi viaje en tiempo real aquí:\n ${url}`;
 
+      const textToShare = `🚗 Datos del vehículo:
+      • Placa: ${vehicleDetails?.plate_number || "N/A"}
+      • Modelo: ${vehicleDetails?.model || "N/A"}
+      Puedes seguir mi viaje en tiempo real aquí:
+      ${url}`;
+
       if (isValidMobileDevice()) {
         if (
           !captureFile &&
           navigator.canShare &&
           navigator.canShare({
             title: "Sigue mi viaje 🚗",
-            text: message,
+            text: textToShare,
           })
         ) {
           await navigator.share({
             title: "Sigue mi viaje 🚗",
-            text: message,
+            text: textToShare,
           });
           const updateResponse = await fetch(`/api/update-trip`, {
             method: "PATCH",
