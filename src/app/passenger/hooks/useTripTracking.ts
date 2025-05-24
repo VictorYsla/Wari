@@ -75,6 +75,7 @@ export const useTripTracking = () => {
     toast({
       title: "Viaje finalizado",
       description: "El viaje ha sido completado exitosamente.",
+      variant: "positive",
     });
   };
 

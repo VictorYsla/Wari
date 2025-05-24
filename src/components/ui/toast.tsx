@@ -31,9 +31,11 @@ const toastVariants = cva(
       variant: {
         default: "border bg-background text-foreground",
         destructive:
-          "destructive group rounded-3xl border-wari-red bg-white text-wari-black font-monserrat",
+          "destructive group rounded-3xl border-wari-red bg-white text-wari-black font-montserrat-regular",
         informative:
-          "informative group rounded-3xl border-wari-yellow bg-white text-wari-black font-monserrat",
+          "informative group rounded-3xl border-wari-yellow bg-white text-wari-black font-montserrat-regular",
+        positive:
+          "positive group rounded-3xl border-wari-green bg-white text-wari-black font-montserrat-regular",
       },
     },
     defaultVariants: {
@@ -97,7 +99,7 @@ const ToastTitle = React.forwardRef<
   <ToastPrimitives.Title
     ref={ref}
     className={cn(
-      "text-sm font-semibold group-[.informative]:font-bold group-[.informative]:text-wari-black",
+      "text-sm font-bold group-[.informative]:font-bold group-[.informative]:text-wari-black group-[.positive]:font-bold group-[.positive]:text-wari-black",
       className
     )}
     {...props}
@@ -112,7 +114,7 @@ const ToastDescription = React.forwardRef<
   <ToastPrimitives.Description
     ref={ref}
     className={cn(
-      "text-sm opacity-90 group-[.informative]:font-normal group-[.informative]:text-wari-black group-[.informative]:font-monserrat",
+      "text-sm opacity-90 group-[.informative]:font-normal group-[.informative]:text-wari-black group-[.informative]:font-monserrat group-[.positive]:font-normal group-[.positive]:text-wari-black group-[.positive]:font-montserrat",
       className
     )}
     {...props}

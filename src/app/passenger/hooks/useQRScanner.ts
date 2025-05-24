@@ -39,6 +39,7 @@ export const useQRScanner = () => {
       toast({
         title: "Código QR escaneado",
         description: "Ahora selecciona el destino para iniciar el seguimiento.",
+        variant: "informative",
       });
     } catch (error: any) {
       setTripStatus({

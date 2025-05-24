@@ -8,6 +8,7 @@ import { NetworkInformation } from "@/app/passenger/types";
 import { useDetectConnectionStability } from "@/hooks/useDetectConnectionStability";
 import { UserResponseType } from "../types";
 import { useSyncEvents } from "@/hooks/useSyncEvents";
+import { translateLoginClerkError } from "@/helpers/translateLoginClerkError";
 
 export const useDriver = () => {
   const { toast } = useToast();
@@ -43,16 +44,10 @@ export const useDriver = () => {
         toast({
           title: "QR expirado",
           description: "Se actualizará a un nuevo QR",
+          variant: "informative",
         });
 
-        createTrip(trip.imei).catch((error) => {
-          toast({
-            title: "Error al actualizar QR",
-            description:
-              "No se pudo generar un nuevo código QR. Intente nuevamente.",
-            variant: "destructive",
-          });
-        });
+        createTrip(trip.imei).catch((error) => {});
       }
     }
   );
@@ -75,12 +70,6 @@ export const useDriver = () => {
 
       return data.vehicle;
     } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Error al buscar vehículo",
-        variant: "destructive",
-      });
       return null;
     }
   };
@@ -153,6 +142,7 @@ export const useDriver = () => {
         toast({
           title: "Autenticación exitosa",
           description: `Vehículo: ${vehicle.name}`,
+          variant: "informative",
         });
       }
     } catch (error) {
@@ -192,6 +182,7 @@ export const useDriver = () => {
       toast({
         title: "Sesión cerrada",
         description: "Has cerrado sesión correctamente",
+        variant: "informative",
       });
     } catch (error) {
       toast({
@@ -241,6 +232,7 @@ export const useDriver = () => {
     toast({
       title: "QR expirado",
       description: "Se actualizará a un nuevo QR",
+      variant: "informative",
     });
 
     setLoading({ ...loading, cancel: false });
@@ -278,26 +270,32 @@ export const useDriver = () => {
 
         if (signInResult?.status === "complete" && setActiveLogin) {
           await setActiveLogin({ session: signInResult.createdSessionId });
+
           if (!isSameExpiredDate) {
             const updateUserResponse = await fetch("/api/update-user", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 id: searchUserResult.data.id,
-                plate: plateNumber.trim(), // Identificador para actualizar el usuario
-                expired_date: expireDt, // Nueva fecha de expiración en timestamptz ISO string
+                plate: plateNumber.trim(),
+                expired_date: expireDt,
                 is_expired: false,
               }),
             });
 
             const updateUserResult = await updateUserResponse.json();
           }
+
           return { success: true, isNewUser: false };
         }
 
-        return { success: false, error: "Login no completado" };
-      } catch (signInError) {
-        return { success: false, error: "Error en al iniciar sesión" };
+        return {
+          success: false,
+          error: "El inicio de sesión no se completó correctamente.",
+        };
+      } catch (error: any) {
+        const errorMessage = translateLoginClerkError(error);
+        return { success: false, error: errorMessage };
       }
     }
 
@@ -426,62 +424,6 @@ export const useDriver = () => {
 
     loadInitialState();
   }, []);
-
-  // useEffect(() => {
-  //   const handleFocus = () => {
-  //     forceReconnect();
-  //     silentlyRestoreTripSession();
-  //   };
-
-  //   const handleVisibilityChange = () => {
-  //     if (document.visibilityState === "visible") {
-  //       forceReconnect();
-  //     }
-  //   };
-
-  //   const handleOnline = () => {
-  //     forceReconnect();
-  //     silentlyRestoreTripSession();
-  //   };
-
-  //   const handleOffline = () => {
-  //     toast({
-  //       title: "Sin conexión de internet",
-  //       description: "Los datos se actualizarán cuando la conexión retorne",
-  //       variant: "destructive",
-  //     });
-  //     // Aquí podrías mostrar un mensaje al usuario, si quieres
-  //   };
-
-  //   window.addEventListener("focus", handleFocus);
-  //   document.addEventListener("visibilitychange", handleVisibilityChange);
-  //   window.addEventListener("online", handleOnline);
-  //   window.addEventListener("offline", handleOffline);
-
-  //   return () => {
-  //     window.removeEventListener("focus", handleFocus);
-  //     document.removeEventListener("visibilitychange", handleVisibilityChange);
-  //     window.removeEventListener("online", handleOnline);
-  //     window.removeEventListener("offline", handleOffline);
-  //   };
-  // }, []);
-
-  // useEffect(() => {
-  //   const handleTouchSync = () => {
-  //     if (!isConnected) {
-  //       forceReconnect();
-  //       silentlyRestoreTripSession();
-  //     }
-  //   };
-
-  //   window.addEventListener("touchend", handleTouchSync);
-  //   window.addEventListener("click", handleTouchSync);
-
-  //   return () => {
-  //     window.removeEventListener("touchend", handleTouchSync);
-  //     window.removeEventListener("click", handleTouchSync);
-  //   };
-  // }, [isConnected]);
 
   const tripState = {
     activeTrip,

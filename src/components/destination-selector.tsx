@@ -255,7 +255,7 @@ export function DestinationSelector({
           }, 100);
         } else {
           toast({
-            title: "Error",
+            title: "Ubicación no disponible",
             description: "No se pudo obtener la ubicación seleccionada",
             variant: "destructive",
           });
@@ -286,7 +286,7 @@ export function DestinationSelector({
   const handleConfirmDestination = () => {
     if (!coordinates) {
       toast({
-        title: "Error",
+        title: "Selecciona un destino",
         description: "Por favor selecciona una ubicación en el mapa",
         variant: "destructive",
       });

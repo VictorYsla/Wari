@@ -131,13 +131,6 @@ export function VehicleTracker({
       }
     } catch (err) {
       setError("Error al obtener la ubicación del vehículo");
-      toast({
-        //Mejorar esto
-        title: "Error",
-        description:
-          "No se pudo obtener la ubicación del vehículo. Intenta de nuevo más tarde.",
-        variant: "destructive",
-      });
     } finally {
       setLoading(false);
     }

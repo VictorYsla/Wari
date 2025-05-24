@@ -14,6 +14,7 @@ export const useDestination = () => {
     toast({
       title: "Destino seleccionado",
       description: selectedDestination.address,
+      variant: "informative",
     });
   };
 

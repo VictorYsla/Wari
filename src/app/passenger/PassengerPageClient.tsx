@@ -98,7 +98,7 @@ export default function PassengerPage() {
           description: "Por favor selecciona un destino para el viaje.",
         });
         toast({
-          title: "Error",
+          title: "Selecciona un destino",
           description: "Por favor selecciona un destino para el viaje.",
           variant: "destructive",
         });
@@ -112,7 +112,7 @@ export default function PassengerPage() {
           description: "Primero debes escanear el código QR del vehículo.",
         });
         toast({
-          title: "Error",
+          title: "Escanea un código QR",
           description: "Primero debes escanear el código QR del vehículo.",
           variant: "destructive",
         });
@@ -149,7 +149,7 @@ export default function PassengerPage() {
         toast({
           title: "Viaje finalizado",
           description: "Este viaje ya ha sido completado.",
-          variant: "destructive",
+          variant: "positive",
         });
         return;
       }
@@ -202,6 +202,7 @@ export default function PassengerPage() {
       toast({
         title: "Seguimiento iniciado",
         description: `Destino: ${destination.address}`,
+        variant: "informative",
       });
     } catch (error: any) {
       setIsButtonLoading(false);
@@ -281,7 +282,7 @@ export default function PassengerPage() {
       toast({
         title: "Error",
         description:
-          "Hubo un problema al finalizar el seguimiento, pero se ha detenido localmente.",
+          "Hubo un problema al finalizar el seguimiento, intenta otra vez",
         variant: "destructive",
       });
     }

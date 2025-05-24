@@ -21,7 +21,7 @@ export function Toaster() {
 
         return (
           <Toast key={id} {...props}>
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 ">
               <div className="grid gap-1">
                 {title && (
                   <ToastTitle>
