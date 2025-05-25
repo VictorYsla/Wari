@@ -3,6 +3,7 @@ import { DestinationSelector } from "@/components/destination-selector";
 import WhiteScanner from "@/assets/svgs/icon-white-scaner.svg";
 import WhiteCheck from "@/assets/svgs/icon-white-check.svg";
 import QRCodeScanner from "@/components/qr-code-scanner";
+import Rocket from "@/assets/svgs/icon-rocket.svg";
 
 interface QRScanViewProps {
   scannedTripId: string;
@@ -37,6 +38,13 @@ export const QRScanView = ({
       return;
     }
     window.location.href = "/";
+  };
+
+  const lastTripUrl = localStorage.getItem("lastTrip");
+  const goToLastTrip = () => {
+    if (lastTripUrl) {
+      window.location.href = lastTripUrl;
+    }
   };
 
   return (
@@ -80,7 +88,21 @@ export const QRScanView = ({
           </div>
 
           {!scannedTripId ? (
-            <QRCodeScanner onScan={onQRScanned} />
+            <>
+              <QRCodeScanner onScan={onQRScanned} />
+              <div className="flex flex-col items-center justify-center w-full max-w-md mt-4 md:mt-0 px-4">
+                {/* Botón para ir al último viaje */}
+                {lastTripUrl && (
+                  <button
+                    onClick={goToLastTrip} // ajusta la ruta según tu app
+                    className="mt-6 w-full md:w-80 bg-wari-blue hover:bg-blue-300 text-white text-[15px] font-montserrat font-bold py-3 px-8 rounded-4xl flex items-center justify-center gap-2"
+                  >
+                    <Rocket className="h-6 w-6" />
+                    Ir al último viaje
+                  </button>
+                )}
+              </div>
+            </>
           ) : (
             <>
               <div className="bg-wari-green dark:bg-green-900/60 dark:text-green-100 py-3 px-6 rounded-3xl mb-6 flex items-center w-full">

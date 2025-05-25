@@ -194,6 +194,7 @@ export default function PassengerPage() {
       await getVehicleByImei(updateTripResponseType?.data.imei);
 
       const url = `${window.location.origin}/passenger?tripId=${updateTripResponseType.data.id}`;
+      localStorage.setItem("lastTrip", url);
       window.location.href = url;
 
       toast({

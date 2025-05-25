@@ -3,7 +3,7 @@ import { HelpCircle, Loader2, AlertCircle, Circle, Square } from "lucide-react";
 import { VehicleTracker } from "@/components/vehicle-tracker";
 import { Destination } from "../types";
 import { Trip } from "@/app/types/types";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 
 interface TrackingViewProps {
   destination?: Destination | null;
@@ -40,6 +40,23 @@ export const TrackingView = ({
   const minutes = Math.floor(countdown / 60);
   const seconds = countdown % 60;
   const formattedTime = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+
+  useEffect(() => {
+    // 1. Agrega una entrada al historial para controlar el retroceso
+    window.history.pushState(null, "", window.location.href);
+
+    // 2. Maneja el evento de retroceso (botón físico o lógico)
+    const handlePopState = () => {
+      // Fuerza una recarga completa (reinicia estados de React)
+      window.location.replace(`${window.location.origin}/passenger`);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-wari-gray flex flex-col items-center px-4 py-8 md:py-12">
