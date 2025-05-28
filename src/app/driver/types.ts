@@ -35,8 +35,6 @@ export interface Data {
   is_active: boolean;
   expired: boolean;
   expired_date: Date;
-  clerk_id: string;
-  clerk_created_user_id: string;
   created_at: Date;
   updated_at: Date;
 }

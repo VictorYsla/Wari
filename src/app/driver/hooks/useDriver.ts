@@ -2,20 +2,16 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { DeviceObject, Trip } from "@/app/types/types";
 import useTripSocket from "@/hooks/useTripSocket";
-import { useAuth, useSignIn, useSignUp } from "@clerk/nextjs";
 import { useAppStore } from "@/hooks/useAppStore";
-import { NetworkInformation } from "@/app/passenger/types";
 import { useDetectConnectionStability } from "@/hooks/useDetectConnectionStability";
-import { UserResponseType } from "../types";
 import { useSyncEvents } from "@/hooks/useSyncEvents";
-import { translateLoginClerkError } from "@/helpers/translateLoginClerkError";
+import { UserResponseType } from "../types";
+import { useUserStore } from "@/hooks/userStore";
 
 export const useDriver = () => {
   const { toast } = useToast();
 
-  const { signUp, setActive: setActiveRegister } = useSignUp();
-  const { signIn, setActive: setActiveLogin } = useSignIn();
-  const { signOut } = useAuth();
+  const { logout } = useUserStore();
 
   const plateNumber = useAppStore((state) => state.plateNumber);
   const password = useAppStore((state) => state.password);
@@ -122,11 +118,7 @@ export const useDriver = () => {
       const vehicle = await findVehicleByPlate(plateNumber.trim());
 
       if (vehicle?.imei) {
-        const authResult = await handleAuthWithClerk(
-          plateNumber,
-          password,
-          vehicle
-        );
+        const authResult = await handleSession(plateNumber, password, vehicle);
 
         if (!authResult?.success) {
           throw new Error(authResult?.error || "Error en autenticación");
@@ -165,7 +157,20 @@ export const useDriver = () => {
       localStorage.removeItem("tripId");
       localStorage.removeItem("plate");
 
-      await signOut();
+      const response = await fetch("/api/logout", {
+        method: "POST",
+        credentials: "include", // Muy importante para que la cookie se envíe
+      });
+
+      console.log({ response: await response.json() });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error al cerrar sesión:", errorData.message);
+        return null;
+      }
+
+      logout();
 
       setAuthState({
         plateNumber: "",
@@ -192,6 +197,93 @@ export const useDriver = () => {
       });
     } finally {
       setLoading((prev) => ({ ...prev, auth: false }));
+    }
+  };
+
+  const handleSession = async (
+    plateNumber: string,
+    password: string,
+    vehicle: DeviceObject
+  ) => {
+    const searchUserResponse = await fetch("/api/search-user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        plate: plateNumber.trim(), // puedes ajustar esto según el DTO que espera tu endpoint
+      }),
+    });
+
+    const searchUserResult =
+      (await searchUserResponse.json()) as UserResponseType;
+
+    const expireDt = vehicle?.expire_dt
+      ? new Date(vehicle.expire_dt).toISOString()
+      : new Date().toISOString();
+
+    const isSameExpiredDate =
+      expireDt === searchUserResult?.data?.expired_date.toString();
+
+    if (searchUserResult?.success) {
+      try {
+        const response = await fetch("/api/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ plateNumber, password }),
+        });
+
+        const data = await response.json();
+
+        console.log({ data });
+
+        if (!response.ok || data.success === false) {
+          // Maneja error de login
+          console.error("Error al iniciar sesión:", data.message);
+          return {
+            success: false,
+            error: "El inicio de sesión no se completó correctamente.",
+          };
+        }
+
+        // const updateUserResponse = await fetch("/api/update-user", {
+        //   method: "POST",
+        //   headers: { "Content-Type": "application/json" },
+        //   body: JSON.stringify({
+        //     id: searchUserResult.data.id,
+        //     plate: plateNumber.trim(),
+        //     expired_date: expireDt,
+        //     is_expired: false,
+        //   }),
+        // });
+
+        // const updateUserResult = await updateUserResponse.json();
+      } catch (error: any) {
+        console.log("Error al iniciar sesion:", error);
+        return { success: false, error: "Unexpected Error" };
+      }
+    }
+
+    try {
+      const createUserResponse = await fetch("/api/create-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plate: plateNumber.trim(),
+          is_active: true,
+          is_expired: false,
+          expired_date: expireDt, // o puedes establecer una fecha personalizada
+          password,
+        }),
+      });
+
+      const createUserResult = await createUserResponse.json();
+
+      console.log({ createUserResult });
+
+      return { success: true, isNewUser: true };
+    } catch (signUpError) {
+      return { success: false, error: "Error en registro" };
     }
   };
 
@@ -236,103 +328,6 @@ export const useDriver = () => {
     });
 
     setLoading({ ...loading, cancel: false });
-  };
-
-  const handleAuthWithClerk = async (
-    plateNumber: string,
-    password: string,
-    vehicle: DeviceObject
-  ) => {
-    const searchUserResponse = await fetch("/api/search-user", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        plate: plateNumber.trim(), // puedes ajustar esto según el DTO que espera tu endpoint
-      }),
-    });
-
-    const searchUserResult =
-      (await searchUserResponse.json()) as UserResponseType;
-
-    const expireDt = vehicle?.expire_dt
-      ? new Date(vehicle.expire_dt).toISOString()
-      : new Date().toISOString();
-
-    const isSameExpiredDate =
-      expireDt === searchUserResult?.data?.expired_date.toString();
-
-    if (searchUserResult?.success) {
-      try {
-        const signInResult = await signIn?.create({
-          identifier: plateNumber.trim(),
-          password: password.trim(),
-        });
-
-        if (signInResult?.status === "complete" && setActiveLogin) {
-          await setActiveLogin({ session: signInResult.createdSessionId });
-
-          if (!isSameExpiredDate) {
-            const updateUserResponse = await fetch("/api/update-user", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                id: searchUserResult.data.id,
-                plate: plateNumber.trim(),
-                expired_date: expireDt,
-                is_expired: false,
-              }),
-            });
-
-            const updateUserResult = await updateUserResponse.json();
-          }
-
-          return { success: true, isNewUser: false };
-        }
-
-        return {
-          success: false,
-          error: "El inicio de sesión no se completó correctamente.",
-        };
-      } catch (error: any) {
-        const errorMessage = translateLoginClerkError(error);
-        return { success: false, error: errorMessage };
-      }
-    }
-
-    try {
-      const signUpResult = await signUp?.create({
-        username: plateNumber.trim(),
-        password: password.trim(),
-      });
-
-      if (signUpResult?.status === "complete" && setActiveRegister) {
-        await setActiveRegister({ session: signUpResult.createdSessionId });
-
-        try {
-          const createUserResponse = await fetch("/api/create-user", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              plate: plateNumber.trim(),
-              is_active: true,
-              expired: false,
-              expired_date: expireDt, // o puedes establecer una fecha personalizada
-              clerk_id: signUpResult.id?.toString(),
-              clerk_created_user_id: signUpResult.createdUserId?.toString(),
-            }),
-          });
-
-          const createUserResult = await createUserResponse.json();
-
-          if (!createUserResult.success) {
-          }
-        } catch (apiError) {}
-
-        return { success: true, isNewUser: true };
-      }
-    } catch (signUpError) {
-      return { success: false, error: "Error en registro" };
-    }
   };
 
   const silentlyRestoreTripSession = async () => {
@@ -454,12 +449,3 @@ export const useDriver = () => {
     cancelTrip,
   };
 };
-
-function isClerkUserNotFoundError(error: any): boolean {
-  const notFoundCodes = [
-    "form_identifier_not_found",
-    "user_not_found",
-    "identifier_not_found",
-  ];
-  return notFoundCodes.includes(error?.errors?.[0]?.code);
-}

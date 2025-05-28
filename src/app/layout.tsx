@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { googleMapsApiKey } from "./api/helpers";
-import { ClerkProvider } from "@clerk/nextjs";
 
 import "./globals.css";
 import "../styles/fonts.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Montserrat } from "next/font/google";
+import { UserProvider } from "./provider/UserProvider";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -76,7 +76,7 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <ClerkProvider>
+    <UserProvider>
       <html lang="es" className={montserrat.variable} suppressHydrationWarning>
         <head>
           <script type="application/ld+json">
@@ -148,6 +148,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
           </ThemeProvider>
         </body>
       </html>
-    </ClerkProvider>
+    </UserProvider>
   );
 }

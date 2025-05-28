@@ -27,11 +27,3 @@ export const hawkEndGetAllParams = isProduction
 export const googleMapsApiKey = isProduction
   ? process.env.NEXT_GOOGLE_MAPS_API_KEY
   : process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-export const clerkPublishableKey = isProduction
-  ? process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-  : process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-
-export const clerkSecretKey = isProduction
-  ? process.env.CLERK_SECRET_KEY
-  : process.env.CLERK_PUBLIC_SECRET_KEY;

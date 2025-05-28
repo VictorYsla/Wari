@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const response = await fetch(`${baseURL}/users/create-user`, {
+    const response = await fetch(`${baseURL}/users/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),

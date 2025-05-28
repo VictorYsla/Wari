@@ -4,12 +4,13 @@ import { useDriver } from "./hooks/useDriver";
 import { AuthForm } from "./components/AuthForm";
 import { DriverPanel } from "./components/DriverPanel";
 import { LoadingView } from "@/components/LoadingView";
-import { useUser } from "@clerk/nextjs";
 import { ArrowLeftIcon } from "lucide-react";
-import Clerk from "@/assets/svgs/icon-clerk.svg";
+import { useUserStore } from "@/hooks/userStore";
 
 export default function DriverPage() {
-  const { isLoaded, isSignedIn, user } = useUser();
+  const { isLoaded, isSignedIn } = useUserStore();
+
+  console.log({ isSignedIn });
 
   const {
     authState,
@@ -27,11 +28,11 @@ export default function DriverPage() {
     window.location.href = "/";
   };
 
-  if (!isLoaded || loading.recharge) {
+  if (loading.auth || loading.cancel || loading.recharge) {
     return <LoadingView />;
   }
 
-  if (!isSignedIn) {
+  if (!authState.isAuthenticated) {
     return (
       <div className="min-h-screen bg-wari-gray flex flex-col items-center justify-center px-4 py-8">
         <div className="bg-white rounded-2xl px-4 py-16 w-full max-w-screen-md">
@@ -63,18 +64,6 @@ export default function DriverPage() {
               onPasswordChange={(value) => setAuthState({ password: value })}
               onSubmit={handleLogin}
             />
-            <div className="mt-10 flex flex-col items-center text-xs text-gray-400">
-              <span className="mb-2 text-black">Secured by</span>
-              <a
-                href="https://clerk.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 hover:text-gray-500 text-black"
-              >
-                <Clerk className="h-6 w-6" />
-                <span className="underline text-black">Clerk</span>
-              </a>
-            </div>
           </div>
         </div>
       </div>

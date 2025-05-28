@@ -1,17 +1,21 @@
-# Wari 🚕 
+# Wari 🚕
 
 ## ⚙️ Instalación local
 
-1. Clonar el repositorio: 
+1. Clonar el repositorio:
+
 ```
 git clone git@github.com:VictorYsla/Wari.git
 ```
 
 2. Instalar dependencias
+
 ```
 yarn install
 ```
+
 3.Crear el archivo .env.local
+
 ```
 NEXT_PUBLIC_BASE_URL="tu_url_base_de_la_aplicacion"
 
@@ -25,12 +29,11 @@ NEXT_PUBLIC_HAWK_GET_ALL_END_PARAMS="tus_parametros_finales_para_obtener_todo_de
 # Google
 NEXT_PUBLIC_Maps_API_KEY="tu_clave_api_de_Maps"
 
-# Clerk
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="tu_clave_publicable_de_clerk"
-CLERK_SECRET_KEY="tu_clave_secreta_de_clerk"
+
 ```
 
 4. Correr el proyecto
+
 ```
 yarn dev
 ```
@@ -38,5 +41,3 @@ yarn dev
 ## 🧾 Licencia
 
 Este proyecto está bajo la licencia MIT.
-
-
