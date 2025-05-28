@@ -159,7 +159,7 @@ export const useDriver = () => {
 
       const response = await fetch("/api/logout", {
         method: "POST",
-        credentials: "include", // Muy importante para que la cookie se envíe
+        credentials: "include",
       });
 
       console.log({ response: await response.json() });
