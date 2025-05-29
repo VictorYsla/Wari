@@ -8,16 +8,17 @@ export interface UserResponseTypes {
 }
 
 export interface Data {
-  savedUser: User;
+  savedUser: UserStore;
   token: Token;
 }
 
-export interface User {
+export interface UserStore {
   plate: string;
   is_active: boolean;
   is_expired: boolean;
   expired_date: Date;
   password: string;
+  time_zone: string;
   id: string;
   created_at: Date;
   updated_at: Date;
@@ -25,13 +26,13 @@ export interface User {
 
 export interface Token {
   token: string;
-  user: User;
+  user: UserStore;
 }
 
 type UserState = {
   isLoaded: boolean;
   isSignedIn: boolean;
-  user: User | null;
+  user: UserStore | null;
   fetchUser: () => Promise<void>;
   logout: () => void;
 };
@@ -51,7 +52,6 @@ export const useUserStore = create<UserState>((set) => ({
         set({ user: null, isSignedIn: false });
       } else {
         const data = await res.json();
-        console.log("fetchUser-data:", data);
         set({ user: data, isSignedIn: true });
       }
     } catch {

@@ -26,15 +26,17 @@ export interface DriverStore {
 export interface UserResponseType {
   success: boolean;
   message: string;
-  data: Data;
+  data: User;
 }
 
-export interface Data {
-  id: string;
+export interface User {
   plate: string;
   is_active: boolean;
-  expired: boolean;
+  is_expired: boolean;
   expired_date: Date;
+  password: string;
+  time_zone: string;
+  id: string;
   created_at: Date;
   updated_at: Date;
 }

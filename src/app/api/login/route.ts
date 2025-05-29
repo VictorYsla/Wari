@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include", // Asegura que se incluyan las cookies
       body: JSON.stringify(body),
     });
 
@@ -39,7 +40,6 @@ export async function POST(request: NextRequest) {
     // No necesitas volver a establecer la cookie aquí, ya que viene del backend
     return nextResponse;
   } catch (error) {
-    console.error("Error en login:", error);
     return NextResponse.json(
       {
         success: false,

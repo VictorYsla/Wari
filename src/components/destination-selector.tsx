@@ -368,7 +368,6 @@ export function DestinationSelector({
           showButtons: ["next"],
           nextBtnText: "Entendido",
           onNextClick: () => {
-            console.log("Cerrado con 'Entendido'");
             driverObj.destroy();
           },
         },

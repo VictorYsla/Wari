@@ -23,7 +23,6 @@ export function useSyncEvents({
       await forceReconnect();
       await silentlySync();
     } catch (error) {
-      console.error("Error sincronizando datos:", error);
     } finally {
       isSyncingRef.current = false;
     }

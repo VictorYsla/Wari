@@ -10,8 +10,6 @@ import { useUserStore } from "@/hooks/userStore";
 export default function DriverPage() {
   const { isLoaded, isSignedIn } = useUserStore();
 
-  console.log({ isSignedIn });
-
   const {
     authState,
     tripState,
@@ -28,11 +26,11 @@ export default function DriverPage() {
     window.location.href = "/";
   };
 
-  if (loading.auth || loading.cancel || loading.recharge) {
+  if (loading.auth || loading.cancel || loading.recharge || !isLoaded) {
     return <LoadingView />;
   }
 
-  if (!authState.isAuthenticated) {
+  if (!isSignedIn) {
     return (
       <div className="min-h-screen bg-wari-gray flex flex-col items-center justify-center px-4 py-8">
         <div className="bg-white rounded-2xl px-4 py-16 w-full max-w-screen-md">

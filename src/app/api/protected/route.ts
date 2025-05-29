@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { baseURL } from "../helpers";
+import { cookies } from "next/headers";
 
 function parseCookies(cookieHeader: string): Record<string, string> {
   return Object.fromEntries(
@@ -11,9 +12,8 @@ function parseCookies(cookieHeader: string): Record<string, string> {
 }
 
 export async function POST(request: NextRequest) {
-  const cookieHeader = request.headers.get("cookie") || "";
-  const cookies = parseCookies(cookieHeader);
-  const token = cookies.token;
+  const cookieStore = await cookies(); // <-- esto NO es una promesa aquí
+  const token = cookieStore.get("token")?.value;
 
   if (!token) {
     return NextResponse.json({ error: "Token not found" }, { status: 401 });

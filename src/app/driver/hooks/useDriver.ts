@@ -5,13 +5,13 @@ import useTripSocket from "@/hooks/useTripSocket";
 import { useAppStore } from "@/hooks/useAppStore";
 import { useDetectConnectionStability } from "@/hooks/useDetectConnectionStability";
 import { useSyncEvents } from "@/hooks/useSyncEvents";
-import { UserResponseType } from "../types";
+import { User, UserResponseType } from "../types";
 import { useUserStore } from "@/hooks/userStore";
 
 export const useDriver = () => {
   const { toast } = useToast();
 
-  const { logout } = useUserStore();
+  const { logout, fetchUser } = useUserStore();
 
   const plateNumber = useAppStore((state) => state.plateNumber);
   const password = useAppStore((state) => state.password);
@@ -117,31 +117,63 @@ export const useDriver = () => {
     try {
       const vehicle = await findVehicleByPlate(plateNumber.trim());
 
-      if (vehicle?.imei) {
-        const authResult = await handleSession(plateNumber, password, vehicle);
+      const searchUserResponse = await fetch("/api/search-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plate: plateNumber.trim(), // puedes ajustar esto según el DTO que espera tu endpoint
+        }),
+      });
 
-        if (!authResult?.success) {
-          throw new Error(authResult?.error || "Error en autenticación");
-        }
+      const searchUserResult =
+        (await searchUserResponse.json()) as UserResponseType;
 
-        setAuthState({ isAuthenticated: true, vehicleDetails: vehicle });
-
-        localStorage.setItem("driverAuthenticated", "true");
-        localStorage.setItem("plate", plateNumber.trim());
-
-        const tripId = await createTrip(vehicle.imei);
-
-        toast({
-          title: "Autenticación exitosa",
-          description: `Vehículo: ${vehicle.name}`,
-          variant: "informative",
-        });
+      if (searchUserResult.success && !searchUserResult.data.is_active) {
+        throw {
+          title: "Usuario inactivo",
+          message:
+            "Tu usuario ha sido desactivado. Si crees que se trata de un error, comunícate con soporte.",
+        };
       }
-    } catch (error) {
+
+      if (!vehicle?.imei) {
+        throw {
+          title: "Vehículo no registrado",
+          message: "Este vehículo no se encuentra en el sistema",
+        };
+      }
+
+      const authResult = await handleSession(
+        plateNumber,
+        password,
+        vehicle,
+        searchUserResult?.data
+      );
+
+      if (!authResult?.success) {
+        throw new Error(authResult?.error || "Error en autenticación");
+      }
+
+      setAuthState({ isAuthenticated: true, vehicleDetails: vehicle });
+
+      localStorage.setItem("driverAuthenticated", "true");
+      localStorage.setItem("plate", plateNumber.trim());
+
+      const tripId = await createTrip(vehicle.imei);
+
       toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Error en autenticación",
+        title: "Autenticación exitosa",
+        description: `Vehículo: ${vehicle.name}`,
+        variant: "informative",
+      });
+    } catch (error: any) {
+      toast({
+        title:
+          error && typeof error === "object" && "title" in error
+            ? (error as any).title
+            : "Error",
+        description: error?.message ?? "Error en autenticación",
+
         variant: "destructive",
       });
     } finally {
@@ -162,11 +194,8 @@ export const useDriver = () => {
         credentials: "include",
       });
 
-      console.log({ response: await response.json() });
-
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("Error al cerrar sesión:", errorData.message);
         return null;
       }
 
@@ -203,27 +232,44 @@ export const useDriver = () => {
   const handleSession = async (
     plateNumber: string,
     password: string,
-    vehicle: DeviceObject
+    vehicle: DeviceObject,
+    foundUser: User
   ) => {
-    const searchUserResponse = await fetch("/api/search-user", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        plate: plateNumber.trim(), // puedes ajustar esto según el DTO que espera tu endpoint
-      }),
-    });
+    const rawExpireDt = vehicle?.expire_dt;
 
-    const searchUserResult =
-      (await searchUserResponse.json()) as UserResponseType;
+    if (!rawExpireDt) {
+      throw {
+        title: "Fecha de expiración no encontrada",
+        message:
+          "El vehículo no tiene una fecha de expiración válida. Contacta con soporte.",
+      };
+    }
 
-    const expireDt = vehicle?.expire_dt
-      ? new Date(vehicle.expire_dt).toISOString()
-      : new Date().toISOString();
+    const expireDt = new Date(rawExpireDt);
+    const now = new Date();
 
-    const isSameExpiredDate =
-      expireDt === searchUserResult?.data?.expired_date.toString();
+    // Verifica si expireDt es una instancia de Date válida
+    const isValidDate = expireDt instanceof Date && !isNaN(expireDt.getTime());
 
-    if (searchUserResult?.success) {
+    if (!isValidDate) {
+      throw {
+        title: "Fecha inválida",
+        message:
+          "La fecha de expiración del vehículo es incorrecta. Contacta con soporte.",
+      };
+    }
+    const isExpired = isValidDate && expireDt < now;
+
+    if (isExpired) {
+      throw {
+        title: "Pago pendiente",
+        description: `Tienes un pago pendiente desde ${vehicle.expire_dt}`,
+      };
+    }
+
+    const isSameExpiredDate = expireDt === foundUser?.expired_date;
+
+    if (foundUser?.id) {
       try {
         const response = await fetch("/api/login", {
           method: "POST",
@@ -235,36 +281,38 @@ export const useDriver = () => {
 
         const data = await response.json();
 
-        console.log({ data });
-
         if (!response.ok || data.success === false) {
           // Maneja error de login
-          console.error("Error al iniciar sesión:", data.message);
           return {
             success: false,
             error: "El inicio de sesión no se completó correctamente.",
           };
         }
 
-        // const updateUserResponse = await fetch("/api/update-user", {
-        //   method: "POST",
-        //   headers: { "Content-Type": "application/json" },
-        //   body: JSON.stringify({
-        //     id: searchUserResult.data.id,
-        //     plate: plateNumber.trim(),
-        //     expired_date: expireDt,
-        //     is_expired: false,
-        //   }),
-        // });
+        if (!isSameExpiredDate) {
+          const updateUserResponse = await fetch("/api/update-user", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: foundUser.id,
+              plate: plateNumber.trim(),
+              expired_date: expireDt,
+              is_expired: false,
+            }),
+          });
 
-        // const updateUserResult = await updateUserResponse.json();
+          const updateUserResult = await updateUserResponse.json();
+        }
+
+        await fetchUser();
       } catch (error: any) {
-        console.log("Error al iniciar sesion:", error);
         return { success: false, error: "Unexpected Error" };
       }
     }
 
     try {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
       const createUserResponse = await fetch("/api/create-user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -274,12 +322,31 @@ export const useDriver = () => {
           is_expired: false,
           expired_date: expireDt, // o puedes establecer una fecha personalizada
           password,
+          time_zone: timezone,
         }),
       });
 
       const createUserResult = await createUserResponse.json();
 
-      console.log({ createUserResult });
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ plateNumber, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || data.success === false) {
+        // Maneja error de login
+        return {
+          success: false,
+          error: "El inicio de sesión no se completó correctamente.",
+        };
+      }
+
+      await fetchUser();
 
       return { success: true, isNewUser: true };
     } catch (signUpError) {
@@ -355,6 +422,44 @@ export const useDriver = () => {
 
         if (plate) {
           const vehicle = await findVehicleByPlate(plate);
+          const searchUserResponse = await fetch("/api/search-user", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              plate: plate.trim(), // puedes ajustar esto según el DTO que espera tu endpoint
+            }),
+          });
+
+          const searchUserResult =
+            (await searchUserResponse.json()) as UserResponseType;
+
+          if (
+            !vehicle &&
+            searchUserResult.success &&
+            searchUserResult.data.is_active
+          ) {
+            const updateUserResponse = await fetch("/api/update-user", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                id: searchUserResult.data.id,
+                plate: searchUserResult.data.plate.trim(),
+                is_active: false,
+              }),
+            });
+            const stopMonitoringResponse = await fetch(
+              `/api/stop-user-monitoring`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ id: searchUserResult.data.id }),
+              }
+            );
+            await handleLogout();
+          }
+
           if (vehicle) {
             setAuthState({
               plateNumber: plate,

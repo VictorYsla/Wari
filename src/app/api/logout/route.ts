@@ -18,9 +18,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(result, { status: 200 });
+    const nextResponse = NextResponse.json(result, { status: 200 });
+
+    const setCookieHeader = response.headers.get("set-cookie");
+    if (setCookieHeader) {
+      // Importante: si el backend envía varias cookies, puede ser un string con comas,
+      // pero aquí asumimos una cookie.
+      nextResponse.headers.append("set-cookie", setCookieHeader);
+    }
+
+    // No necesitas volver a establecer la cookie aquí, ya que viene del backend
+    return nextResponse;
   } catch (error) {
-    console.error("Error en logout:", error);
     return NextResponse.json(
       { message: "Error interno del servidor" },
       { status: 500 }
