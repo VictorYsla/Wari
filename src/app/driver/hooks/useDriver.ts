@@ -285,7 +285,9 @@ export const useDriver = () => {
           // Maneja error de login
           return {
             success: false,
-            error: "El inicio de sesión no se completó correctamente.",
+            error:
+              data.message ??
+              "El inicio de sesión no se completó correctamente.",
           };
         }
 
