@@ -121,7 +121,7 @@ export const useDriver = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          plate: plateNumber.trim(), // puedes ajustar esto según el DTO que espera tu endpoint
+          plate: vehicle.plate_number.trim(), // puedes ajustar esto según el DTO que espera tu endpoint
         }),
       });
 
@@ -172,8 +172,12 @@ export const useDriver = () => {
           error && typeof error === "object" && "title" in error
             ? (error as any).title
             : "Error",
-        description: error?.message ?? "Error en autenticación",
-
+        description:
+          typeof error === "object"
+            ? (error as any).description ||
+              (error as any).message ||
+              "Error en autenticación"
+            : "Error en autenticación",
         variant: "destructive",
       });
     } finally {
@@ -267,7 +271,8 @@ export const useDriver = () => {
       };
     }
 
-    const isSameExpiredDate = expireDt === foundUser?.expired_date;
+    const isSameExpiredDate =
+      expireDt.getTime() === new Date(foundUser?.expired_date).getTime();
 
     if (foundUser?.id) {
       try {
@@ -276,7 +281,10 @@ export const useDriver = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ plateNumber, password }),
+          body: JSON.stringify({
+            plateNumber: vehicle.plate_number.trim(),
+            password,
+          }),
         });
 
         const data = await response.json();
@@ -297,7 +305,7 @@ export const useDriver = () => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               id: foundUser.id,
-              plate: plateNumber.trim(),
+              plate: vehicle.plate_number.trim(),
               expired_date: expireDt,
               is_expired: false,
             }),
@@ -307,6 +315,7 @@ export const useDriver = () => {
         }
 
         await fetchUser();
+        return { success: true, isNewUser: false };
       } catch (error: any) {
         return { success: false, error: "Unexpected Error" };
       }
@@ -319,7 +328,7 @@ export const useDriver = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          plate: plateNumber.trim(),
+          plate: vehicle.plate_number.trim(),
           is_active: true,
           is_expired: false,
           expired_date: expireDt, // o puedes establecer una fecha personalizada
@@ -335,7 +344,10 @@ export const useDriver = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ plateNumber, password }),
+        body: JSON.stringify({
+          plateNumber: vehicle.plate_number.trim(),
+          password,
+        }),
       });
 
       const data = await response.json();

@@ -39,7 +39,10 @@ export const AuthForm = ({
               id="plateNumber"
               type="text"
               value={plateNumber}
-              onChange={(e) => onPlateChange(e.target.value)}
+              onChange={(e) => onPlateChange(e.target.value.replace(/\s/g, ""))}
+              onKeyDown={(e) => {
+                if (e.key === " ") e.preventDefault();
+              }}
               placeholder="Ej: ABC-123"
               required
               className="bg-white border-2 text-sm border-wari-yellow h-12 font-montserrat font-normal w-full rounded-4xl placeholder-black p-2 focus:outline-none"
@@ -63,7 +66,12 @@ export const AuthForm = ({
               id="password"
               type="password"
               value={password}
-              onChange={(e) => onPasswordChange(e.target.value)}
+              onChange={(e) =>
+                onPasswordChange(e.target.value.replace(/\s/g, ""))
+              }
+              onKeyDown={(e) => {
+                if (e.key === " ") e.preventDefault();
+              }}
               placeholder="Ej: 12345678"
               minLength={8}
               pattern=".{8,}"

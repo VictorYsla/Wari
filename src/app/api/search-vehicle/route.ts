@@ -66,7 +66,9 @@ export async function POST(request: Request) {
 
     for (const user of data) {
       if (Array.isArray(user.objects)) {
-        const vehicle = user.objects.find((obj) => obj.plate_number === plate);
+        const vehicle = user.objects.find(
+          (obj) => obj.plate_number.toLowerCase() === plate.toLowerCase()
+        );
         if (vehicle) {
           foundVehicle = vehicle;
           break;
