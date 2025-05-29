@@ -6,9 +6,6 @@ import SearchIcon from "@/assets/svgs/icon-magni-glass.svg";
 import Link from "next/link";
 import { Loader } from "lucide-react";
 
-// Simulación de base de datos de conductores activos
-const activeDrivers = ["ABC123", "XYZ789", "DEF456"];
-
 export default function SearchPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -29,7 +26,7 @@ export default function SearchPage() {
       const response = await fetch("/api/search-user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plate: trimmedQuery }),
+        body: JSON.stringify({ plate: trimmedQuery.toUpperCase() }),
       });
 
       const data = await response.json();
