@@ -234,7 +234,7 @@ export const useDriver = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            plateNumber: vehicle.plate_number.trim(),
+            plate: vehicle.plate_number.trim(),
             password,
           }),
         });
@@ -297,7 +297,7 @@ export const useDriver = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          plateNumber: vehicle.plate_number.trim(),
+          plate: vehicle.plate_number.trim(),
           password,
         }),
       });
@@ -308,7 +308,7 @@ export const useDriver = () => {
         // Maneja error de login
         return {
           success: false,
-          error: "El inicio de sesión no se completó correctamente.",
+          error: "El registro no se completó correctamente.",
         };
       }
 
