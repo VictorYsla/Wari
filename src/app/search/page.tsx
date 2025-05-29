@@ -20,7 +20,7 @@ export default function SearchPage() {
     const trimmedQuery = searchQuery.trim();
     if (!trimmedQuery) return;
 
-    setIsLoading(true); // empieza carga
+    setIsLoading(true);
 
     try {
       const response = await fetch("/api/search-user", {
@@ -38,14 +38,24 @@ export default function SearchPage() {
         });
       } else {
         const { is_active, is_expired } = data.data;
-        const isWariActive = is_active === true && is_expired === false;
 
-        setSearchResult({
-          isActive: isWariActive,
-          message: isWariActive
-            ? "Este vehículo es un Wari activo"
-            : "Este vehículo no es un Wari activo",
-        });
+        if (is_expired) {
+          setSearchResult({
+            isActive: false,
+            message:
+              "La vigencia de este vehículo ha expirado. El monitoreo no está disponible.",
+          });
+        } else if (!is_active) {
+          setSearchResult({
+            isActive: false,
+            message: "Este vehículo no es un Wari activo",
+          });
+        } else {
+          setSearchResult({
+            isActive: true,
+            message: "Este vehículo es un Wari activo",
+          });
+        }
       }
     } catch (err) {
       setSearchResult({
@@ -53,7 +63,7 @@ export default function SearchPage() {
         message: "Hubo un error al buscar el vehículo",
       });
     } finally {
-      setIsLoading(false); // termina carga
+      setIsLoading(false);
     }
   };
 
@@ -116,18 +126,13 @@ export default function SearchPage() {
             <p className="font-montserrat font-bold text-lg md:text-xl">
               {searchResult.message}
             </p>
-            <p className="font-montserrat text-sm mt-2">
-              {searchResult.isActive
-                ? "Puedes rastrear este vehículo escaneando su código QR"
-                : "Este vehículo no está registrado en nuestro sistema"}
-            </p>
           </div>
         )}
 
         <div className="mt-8 text-center">
           <Link href="/">
             <button className="bg-wari-blue hover:bg-[#189db9] text-white py-3 px-6 rounded-4xl text-[15px] font-montserrat font-bold">
-              Volver al inicio
+              Ir al inicio
             </button>
           </Link>
         </div>
