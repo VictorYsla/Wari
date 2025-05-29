@@ -121,7 +121,7 @@ export const useDriver = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          plate: vehicle.plate_number.trim(), // puedes ajustar esto según el DTO que espera tu endpoint
+          plate: vehicle?.plate_number?.trim(), // puedes ajustar esto según el DTO que espera tu endpoint
         }),
       });
 
@@ -178,54 +178,6 @@ export const useDriver = () => {
               (error as any).message ||
               "Error en autenticación"
             : "Error en autenticación",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading((prev) => ({ ...prev, auth: false }));
-    }
-  };
-
-  const handleLogout = async () => {
-    setLoading((prev) => ({ ...prev, auth: true }));
-
-    try {
-      localStorage.removeItem("driverAuthenticated");
-      localStorage.removeItem("tripId");
-      localStorage.removeItem("plate");
-
-      const response = await fetch("/api/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        return null;
-      }
-
-      logout();
-
-      setAuthState({
-        plateNumber: "",
-        password: "",
-        isAuthenticated: false,
-        vehicleDetails: null,
-      });
-
-      setTripState({
-        activeTrip: null,
-        isGeneratingQR: false,
-      });
-
-      toast({
-        title: "Sesión cerrada",
-        description: "Has cerrado sesión correctamente",
-        variant: "informative",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Error al cerrar sesión",
         variant: "destructive",
       });
     } finally {
@@ -365,6 +317,54 @@ export const useDriver = () => {
       return { success: true, isNewUser: true };
     } catch (signUpError) {
       return { success: false, error: "Error en registro" };
+    }
+  };
+
+  const handleLogout = async () => {
+    setLoading((prev) => ({ ...prev, auth: true }));
+
+    try {
+      localStorage.removeItem("driverAuthenticated");
+      localStorage.removeItem("tripId");
+      localStorage.removeItem("plate");
+
+      const response = await fetch("/api/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        return null;
+      }
+
+      logout();
+
+      setAuthState({
+        plateNumber: "",
+        password: "",
+        isAuthenticated: false,
+        vehicleDetails: null,
+      });
+
+      setTripState({
+        activeTrip: null,
+        isGeneratingQR: false,
+      });
+
+      toast({
+        title: "Sesión cerrada",
+        description: "Has cerrado sesión correctamente",
+        variant: "informative",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Error al cerrar sesión",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading((prev) => ({ ...prev, auth: false }));
     }
   };
 
