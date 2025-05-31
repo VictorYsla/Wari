@@ -20,6 +20,7 @@ import { TripStatusType, Destination } from "./types";
 import { isValidMobileDevice } from "@/helpers/isValidMobileDevice";
 
 export default function PassengerPage() {
+  // Hooks
   const {
     tripData,
     tripIdentifier,
