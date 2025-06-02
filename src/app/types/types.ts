@@ -11,6 +11,7 @@ export interface Trip {
   has_been_shared: boolean;
   grace_period_active: boolean;
   grace_period_end_time: string;
+  plate: string;
 }
 
 export interface UpdateTripResponse {

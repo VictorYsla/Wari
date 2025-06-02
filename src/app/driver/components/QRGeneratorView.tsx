@@ -1,9 +1,14 @@
 import { QRCodeGenerator } from "@/components/qr-code-generator";
 import { Loader2, XCircle } from "lucide-react";
-import { convertUtcToDeviceDate } from "@/helpers/time";
+import {
+  convertTimestamptzToUserTimeZone,
+  convertUtcToDeviceDate,
+} from "@/helpers/time";
 import { Trip } from "@/app/types/types";
 import CloseEye from "@/assets/svgs/icon-dont-show.svg";
 import QR from "@/assets/svgs/icon-qr.svg";
+import { useUserStore } from "@/hooks/userStore";
+import moment from "moment-timezone";
 
 interface QRGeneratorViewProps {
   activeTrip: Trip | null;
@@ -20,74 +25,96 @@ export const QRGeneratorView = ({
   onCancelTrip,
   onHideQR,
 }: QRGeneratorViewProps) => {
+  const { user } = useUserStore();
+
+  const isExpired = user?.is_expired;
+  const expiredDate = user?.expired_date || "";
+
   return (
     <div className="w-full">
-      <div className="bg-wari-gray rounded-3xl pt-6 pb-4 px-6 w-full">
-        {activeTrip && activeTrip.is_active ? (
-          <div className="text-left mb-8">
-            <h2 className="font-montserrat font-bold text-sm flex items-center gap-2 mb-2">
-              <QR className="w-5 h-5" />
-              Estado del QR
-            </h2>
-            {activeTrip.destination ? (
-              <div className="mb-6">
-                <div className="space-y-1">
-                  <p className="font-montserrat font-bold text-sm">
-                    Destino:{" "}
-                    <span className="font-montserrat font-normal text-sm">
-                      {JSON.parse(activeTrip.destination).address}
-                    </span>
-                  </p>
-                  <p className="font-montserrat font-bold text-sm">
-                    Iniciado:{" "}
-                    <span className="font-montserrat font-normal text-sm">
-                      {convertUtcToDeviceDate(activeTrip.start_date)}
-                    </span>
-                  </p>
+      {!isExpired ? (
+        <div className="bg-wari-gray rounded-3xl pt-6 pb-4 px-6 w-full">
+          {activeTrip && activeTrip.is_active ? (
+            <div className="text-left mb-8">
+              <h2 className="font-montserrat font-bold text-sm flex items-center gap-2 mb-2">
+                <QR className="w-5 h-5" />
+                Estado del QR
+              </h2>
+              {activeTrip.destination ? (
+                <div className="mb-6">
+                  <div className="space-y-1">
+                    <p className="font-montserrat font-bold text-sm">
+                      Destino:{" "}
+                      <span className="font-montserrat font-normal text-sm">
+                        {JSON.parse(activeTrip.destination).address}
+                      </span>
+                    </p>
+                    <p className="font-montserrat font-bold text-sm">
+                      Iniciado:{" "}
+                      <span className="font-montserrat font-normal text-sm">
+                        {convertUtcToDeviceDate(activeTrip.start_date)}
+                      </span>
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <>
-                <p className="font-montserrat font-normal text-sm leading-4">
-                  QR activo esperando que un pasajero
-                </p>
-                <p className="font-montserrat font-normal text-sm leading-4">
-                  defina el destino.
-                </p>
-              </>
-            )}
-          </div>
-        ) : (
+              ) : (
+                <>
+                  <p className="font-montserrat font-normal text-sm leading-4">
+                    QR activo esperando que un pasajero
+                  </p>
+                  <p className="font-montserrat font-normal text-sm leading-4">
+                    defina el destino.
+                  </p>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="text-left mb-8">
+              <h2 className="font-montserrat font-bold text-sm flex items-center gap-2 mb-2">
+                <QR className="w-5 h-5" />
+                Estado del QR
+              </h2>
+              <p className="text-sm font-montserrat">
+                QR no disponible. Actualizando...
+              </p>
+            </div>
+          )}
+
+          <QRCodeGenerator
+            vehicleKey={activeTrip?.id || ""}
+            isActive={activeTrip?.is_active || false}
+            destination={activeTrip?.destination}
+          />
+
+          <p className="font-montserrat font-normal text-xs leading-4">
+            Comparte este código QR con los
+          </p>
+          <p className="font-montserrat font-normal text-xs leading-4">
+            pasajeros para que puedan seguir tu
+          </p>
+          <p className="font-montserrat font-normal text-xs leading-4">
+            ubicación. El código QR expirará
+          </p>
+          <p className="font-montserrat font-normal text-xs leading-4">
+            automáticamente al llegar al destino.
+          </p>
+        </div>
+      ) : (
+        <div className="bg-wari-gray rounded-3xl pt-6 pb-4 px-6 w-full">
           <div className="text-left mb-8">
             <h2 className="font-montserrat font-bold text-sm flex items-center gap-2 mb-2">
               <QR className="w-5 h-5" />
               Estado del QR
             </h2>
-            <p className="text-sm font-montserrat">
-              QR no disponible. Actualizando...
+            <p className="text-base font-montserrat font-bold text-wari-red">
+              {`Tienes un pago pendiente desde ${convertTimestamptzToUserTimeZone(
+                expiredDate,
+                user.time_zone
+              )}`}
             </p>
           </div>
-        )}
-
-        <QRCodeGenerator
-          vehicleKey={activeTrip?.id || ""}
-          isActive={activeTrip?.is_active || false}
-          destination={activeTrip?.destination}
-        />
-
-        <p className="font-montserrat font-normal text-xs leading-4">
-          Comparte este código QR con los
-        </p>
-        <p className="font-montserrat font-normal text-xs leading-4">
-          pasajeros para que puedan seguir tu
-        </p>
-        <p className="font-montserrat font-normal text-xs leading-4">
-          ubicación. El código QR expirará
-        </p>
-        <p className="font-montserrat font-normal text-xs leading-4">
-          automáticamente al llegar al destino.
-        </p>
-      </div>
+        </div>
+      )}
 
       {/* Contenedor centrado de botones */}
       <div className="flex flex-col items-center md:flex-row md:justify-center md:gap-6">

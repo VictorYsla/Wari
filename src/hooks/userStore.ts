@@ -52,7 +52,7 @@ export const useUserStore = create<UserState>((set) => ({
         set({ user: null, isSignedIn: false });
       } else {
         const data = await res.json();
-        set({ user: data, isSignedIn: true });
+        set({ user: data?.data, isSignedIn: true });
       }
     } catch {
       set({ user: null, isSignedIn: false });

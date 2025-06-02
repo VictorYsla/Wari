@@ -18,3 +18,14 @@ export function convertUtcToDeviceTime(utcDateStr: string): string {
   const localDate = moment.utc(utcDateStr).tz(deviceTimeZone);
   return localDate.format("hh:mm:ss a");
 }
+
+export function convertTimestamptzToUserTimeZone(
+  timestamptz: Date | string,
+  time_zone: string
+) {
+  const formattedDate = moment(timestamptz)
+    .tz(time_zone || "America/Bogota") // zona horaria GMT-5
+    .format("DD-MM-2026");
+
+  return formattedDate;
+}
