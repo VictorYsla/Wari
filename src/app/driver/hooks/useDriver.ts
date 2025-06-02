@@ -7,11 +7,12 @@ import { useDetectConnectionStability } from "@/hooks/useDetectConnectionStabili
 import { useSyncEvents } from "@/hooks/useSyncEvents";
 import { User, UserResponseType } from "../types";
 import { useUserStore } from "@/hooks/userStore";
+import { convertTimestamptzToUserTimeZone } from "@/helpers/time";
 
 export const useDriver = () => {
   const { toast } = useToast();
 
-  const { logout, fetchUser } = useUserStore();
+  const { logout, fetchUser, user } = useUserStore();
 
   const plateNumber = useAppStore((state) => state.plateNumber);
   const password = useAppStore((state) => state.password);
@@ -31,24 +32,28 @@ export const useDriver = () => {
 
   const { isConnected, forceReconnect } = useTripSocket(
     activeTrip?.id || "",
-    async (trip: Trip) => {
-      setTripState({ activeTrip: trip });
+    async (trip: Trip | null) => {
+      if (trip) {
+        setTripState({ activeTrip: trip });
 
-      localStorage.setItem("tripId", trip.id);
+        localStorage.setItem("tripId", trip.id);
 
-      if (!trip.is_active && useAppStore.getState().isAuthenticated) {
-        toast({
-          title: "QR expirado",
-          description: "Se actualizará a un nuevo QR",
-          variant: "informative",
-        });
-
-        createTrip(trip.imei).catch((error) => {});
+        if (!trip.is_active && useAppStore.getState().isAuthenticated) {
+          toast({
+            title: "QR expirado",
+            description: "Se actualizará a un nuevo QR",
+            variant: "informative",
+          });
+          await fetchUser();
+          await createTrip(trip.imei).catch((error) => {});
+        }
+        return;
       }
+      await handleLogout();
     }
   );
 
-  const findVehicleByPlate = async (plate: string) => {
+  const findVehicleByPlate = async (plate: string, isSilently?: boolean) => {
     try {
       const response = await fetch("/api/search-vehicle", {
         method: "POST",
@@ -61,7 +66,9 @@ export const useDriver = () => {
       const data = await response.json();
 
       if (!data.success || !data.vehicle) {
-        throw new Error(data.message || "Vehículo no encontrado");
+        if (!isSilently) {
+          throw new Error(data.message || "Vehículo no encontrado");
+        }
       }
 
       return data.vehicle;
@@ -71,15 +78,45 @@ export const useDriver = () => {
   };
 
   const createTrip = async (imei: string) => {
-    if (vehicleDetails?.expire_dt) {
-      const expireDate = new Date(vehicleDetails.expire_dt);
+    const response = await fetch(`/api/search-vehicle-with-imei`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        imei: imei,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error del servidor: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.success || !data.vehicle) {
+      toast({
+        title: "Vehículo no encontrado",
+        description: data.message || "No se pudo encontrar el vehículo.",
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    const vehicle = data.vehicle;
+
+    if (vehicle?.expire_dt) {
+      const expireDate = new Date(vehicle?.expire_dt);
       const now = new Date();
 
       if (expireDate <= now) {
         setTripState({ activeTrip: null });
         toast({
           title: "Pago pendiente",
-          description: `Tienes un pago pendiente desde ${vehicleDetails.expire_dt}`,
+          description: `Tienes un pago pendiente desde ${convertTimestamptzToUserTimeZone(
+            user?.expired_date || "",
+            user?.time_zone || ""
+          )}`,
           variant: "destructive",
         });
         return;
@@ -90,7 +127,10 @@ export const useDriver = () => {
       const response = await fetch("/api/register-trip", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imei }),
+        body: JSON.stringify({
+          imei,
+          plate: vehicle?.plate_number,
+        }),
       });
 
       if (!response.ok) {
@@ -286,6 +326,7 @@ export const useDriver = () => {
           expired_date: expireDt, // o puedes establecer una fecha personalizada
           password,
           time_zone: timezone,
+          imei: vehicle.imei,
         }),
       });
 
@@ -411,12 +452,36 @@ export const useDriver = () => {
     setLoading({ ...loading, cancel: false });
   };
 
+  // utils/location.ts o en el mismo archivo arriba
+  const getVehicleLocation = async (key: string) => {
+    try {
+      const response = await fetch(`/api/vehicle-location`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ key }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success || !data.location) {
+        return null;
+      }
+
+      return data.location; // contiene lat, lng, timestamp, etc.
+    } catch (error) {
+      console.error("Error fetching vehicle location:", error);
+      return null;
+    }
+  };
+
   const silentlyRestoreTripSession = async () => {
     const tripId = localStorage.getItem("tripId");
     const isAuthenticated = localStorage.getItem("driverAuthenticated");
-    const plate = localStorage.getItem("plate");
+    // const plate = localStorage.getItem("plate");
 
-    if (tripId && isAuthenticated) {
+    if (tripId && isAuthenticated && plateNumber) {
       try {
         const response = await fetch("/api/get-trip", {
           method: "POST",
@@ -426,21 +491,25 @@ export const useDriver = () => {
 
         if (!response.ok) return;
 
-        const { data } = await response.json();
+        const tripResponse = await response.json();
+        const trip = tripResponse.data;
 
-        if (data.is_active) {
-          setTripState({ activeTrip: data });
+        if (trip.is_active) {
+          setTripState({ activeTrip: trip });
         } else {
-          createTrip(data.imei);
+          createTrip(trip.imei);
         }
 
-        if (plate) {
-          const vehicle = await findVehicleByPlate(plate);
+        if (plateNumber) {
+          const vehicle = await findVehicleByPlate(plateNumber, true);
+
+          const location = await getVehicleLocation(trip.imei);
+
           const searchUserResponse = await fetch("/api/search-user", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              plate: plate.trim(), // puedes ajustar esto según el DTO que espera tu endpoint
+              plate: plateNumber.trim(), // puedes ajustar esto según el DTO que espera tu endpoint
             }),
           });
 
@@ -448,7 +517,7 @@ export const useDriver = () => {
             (await searchUserResponse.json()) as UserResponseType;
 
           if (
-            !vehicle &&
+            !location?.longitude &&
             searchUserResult.success &&
             searchUserResult.data.is_active
           ) {
@@ -476,7 +545,7 @@ export const useDriver = () => {
 
           if (vehicle) {
             setAuthState({
-              plateNumber: plate,
+              plateNumber: plateNumber,
               isAuthenticated: true,
               vehicleDetails: vehicle,
             });
@@ -530,7 +599,7 @@ export const useDriver = () => {
             }
           }
         } catch (error) {
-          handleLogout();
+          await handleLogout();
         }
       }
       setLoading((prev) => ({ ...prev, recharge: false }));
