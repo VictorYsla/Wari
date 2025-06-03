@@ -131,7 +131,12 @@ export const QRGeneratorView = ({
         <button
           className="w-full md:w-80 bg-wari-red hover:bg-red-400 text-white text-[15px] font-montserrat font-bold py-3 px-8 rounded-4xl flex items-center justify-center gap-2 disabled:opacity-50 mt-4 md:mt-12"
           onClick={onCancelTrip}
-          disabled={isCancelLoading || !isConnected || !activeTrip?.id}
+          disabled={
+            isCancelLoading ||
+            !isConnected ||
+            !activeTrip?.id ||
+            !activeTrip.destination
+          }
         >
           {isCancelLoading ? (
             <>
