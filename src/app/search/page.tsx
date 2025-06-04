@@ -22,14 +22,19 @@ export default function SearchPage() {
 
     setIsLoading(true);
 
+    const plateToSearch = trimmedQuery.toUpperCase();
+
     try {
       const response = await fetch("/api/search-user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plate: trimmedQuery.toUpperCase() }),
+        body: JSON.stringify({ plate: plateToSearch }),
       });
 
       const data = await response.json();
+
+      let was_verified = false;
+      let is_user_expired = false;
 
       if (!data.success || !data.data) {
         setSearchResult({
@@ -39,7 +44,10 @@ export default function SearchPage() {
       } else {
         const { is_active, is_expired } = data.data;
 
-        if (is_expired) {
+        is_user_expired = is_expired;
+        was_verified = is_active;
+
+        if (is_expired && is_active) {
           setSearchResult({
             isActive: false,
             message:
@@ -57,6 +65,18 @@ export default function SearchPage() {
           });
         }
       }
+
+      await fetch(`/api/create-verified-vehicle-searches`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plate: plateToSearch,
+          was_verified,
+          is_user_expired,
+          imei: data?.data?.imei ?? null,
+          user_id: data?.data?.id ?? null, // opcional si tienes este valor en contexto
+        }),
+      });
     } catch (err) {
       setSearchResult({
         isActive: false,
