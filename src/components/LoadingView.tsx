@@ -16,7 +16,7 @@ export const LoadingView = () => {
         <div className="w-full max-w-md mb-15 px-4 flex items-center justify-center ">
           <div className="flex justify-center mt-4 flex-col w-50 items-center">
             <Destination className="w-30 h-30 text-black mb-4" />
-            <div className="w-full h-5 bg-black rounded-full overflow-hidden p-1">
+            <div className="w-full h-[18px] bg-black rounded-full overflow-hidden p-1">
               <div className="h-full bg-wari-yellow animate-progress rounded-full"></div>
             </div>
           </div>
