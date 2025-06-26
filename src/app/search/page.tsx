@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Driver, VehicleStatus } from "./types";
 import { convertUtcToDeviceTime } from "@/helpers/time";
+import moment from "moment";
 
 function getVehicleStatus(driver: Driver): VehicleStatus {
   if (driver.is_active && !driver.is_expired)
@@ -63,6 +64,23 @@ export default function SearchPage() {
   useEffect(() => {
     fetchDrivers();
   }, []);
+
+  function getAvailability(dt_tracker: string) {
+    const now = moment(); // local time
+    const lastUpdate = moment.utc(dt_tracker).local(); // convierte UTC a local
+    const diff = now.diff(lastUpdate, "minutes");
+
+    if (diff <= 5) {
+      return { label: "Disponible", color: "bg-green-500" };
+    }
+    if (diff > 5 && diff <= 10) {
+      return {
+        label: "Probablemente disponible",
+        color: "bg-yellow-400 text-black",
+      };
+    }
+    return { label: "Probablemente no disponible", color: "bg-red-500" };
+  }
 
   const filteredDrivers = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -148,6 +166,9 @@ export default function SearchPage() {
             ) : (
               filteredDrivers.map((driver) => {
                 const vehicleStatus = getVehicleStatus(driver);
+                const availability = getAvailability(
+                  driver.hawkData.dt_tracker
+                );
 
                 return (
                   <div
@@ -211,12 +232,26 @@ export default function SearchPage() {
                         </div>
                       </div>
                       <div className="flex flex-col items-end text-xs text-gray-500">
-                        <span>Última actualización:</span>
-                        <span className="font-montserrat">
-                          {driver.hawkData.dt_tracker
-                            ? convertUtcToDeviceTime(driver.hawkData.dt_tracker)
-                            : "-"}
+                        <span className="flex items-center gap-2">
+                          <span>Última conexión:</span>
+                          {/* Círculo de color según disponibilidad */}
+                          <span
+                            className={`inline-block w-3 h-3 rounded-full ${availability.color}`}
+                            title={availability.label}
+                          ></span>
+                          <span className="font-montserrat">
+                            {driver.hawkData.dt_tracker
+                              ? convertUtcToDeviceTime(
+                                  driver.hawkData.dt_tracker
+                                )
+                              : "-"}
+                          </span>
                         </span>
+                        {/* <span
+                          className={`ml-2 px-2 py-0.5 rounded-full text-xs font-semibold ${availability.color}`}
+                        >
+                          {availability.label}
+                        </span> */}
                       </div>
                     </div>
                   </div>

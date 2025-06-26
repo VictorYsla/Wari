@@ -1,11 +1,12 @@
 import Logo from "@/assets/svgs/logo-01.svg";
 import Driver from "@/assets/svgs/icon-driver.svg";
 import Passenger from "@/assets/svgs/icon-passenger.svg";
+import { Search } from "lucide-react";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-wari-gray flex flex-col items-center justify-center p-4 md:py-12">
-      <div className="bg-white rounded-2xl px-4 py-8 w-full max-w-screen-md">
+      <div className="bg-white rounded-2xl px-4 pt-8 pb-20 w-full max-w-screen-md">
         <div className="flex flex-col items-center mb-8 md:mb-12">
           <div className="w-24 h-24 md:w-32 md:h-32 mb-10 relative">
             <Logo className="w-full h-full" />
@@ -72,6 +73,14 @@ export default function Home() {
               </a>
             </div>
           </div>
+        </div>
+        <div className="fixed bottom-4 left-0 w-full flex justify-center z-50 md:static md:mt-10">
+          <a href="/search" className="w-[90%] md:w-auto">
+            <button className="w-full md:w-auto flex items-center justify-center gap-2 bg-wari-blue hover:bg-[#189db9] text-white py-4 px-8 rounded-4xl text-[17px] font-montserrat font-bold shadow-2xl transition-colors  md:border-0">
+              <Search className="w-5 h-5" />
+              Buscar vehículos
+            </button>
+          </a>
         </div>
       </div>
     </div>
