@@ -1,5 +1,10 @@
 // Tipos actualizados para el nuevo tipado de drivers
 
+export type HawkCustomField = {
+  name: string;
+  value: string;
+};
+
 export type HawkParams = {
   gpslev: string;
   gsmlev: string;
@@ -46,7 +51,7 @@ export type HawkData = {
   plate_number: string;
   odometer: string;
   engine_hours: string;
-  custom_fields: any[];
+  custom_fields: HawkCustomField[];
 };
 
 export type Driver = {
@@ -66,4 +71,13 @@ export type VehicleStatus = {
   status: "connected" | "disconnected" | "inactive";
   label: string;
   color: string;
+};
+
+export type Sponsor = {
+  id: string;
+  name: string;
+  logoUrl: string;
+  website: string;
+  created_at: string;
+  updated_at: string;
 };

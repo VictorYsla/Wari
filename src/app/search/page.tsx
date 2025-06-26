@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import Logo from "@/assets/svgs/logo-01.svg";
 import SearchIcon from "@/assets/svgs/icon-magni-glass.svg";
 import Link from "next/link";
@@ -13,7 +13,7 @@ import {
   XCircle,
   RefreshCw,
 } from "lucide-react";
-import { Driver, VehicleStatus } from "./types";
+import { Driver, Sponsor, VehicleStatus } from "./types";
 import { convertUtcToDeviceTime } from "@/helpers/time";
 import moment from "moment";
 
@@ -42,6 +42,9 @@ export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [refresh, setRefresh] = useState(0);
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [currentSponsor, setCurrentSponsor] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Extrae la función para poder llamarla manualmente
   const fetchDrivers = async () => {
@@ -62,8 +65,22 @@ export default function SearchPage() {
     setIsLoading(false);
   };
 
+  const fetchSponsors = async () => {
+    try {
+      const res = await fetch("/api/get-sponsors", { method: "POST" });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.sponsors)) {
+        setSponsors(data.sponsors);
+      }
+    } catch {
+      setSponsors([]);
+    }
+  };
+
   useEffect(() => {
     fetchDrivers();
+    fetchSponsors();
+
     const handleRefresh = () => setRefresh((r) => r + 1);
     window.addEventListener("click", handleRefresh);
     window.addEventListener("touchstart", handleRefresh);
@@ -72,6 +89,16 @@ export default function SearchPage() {
       window.removeEventListener("touchstart", handleRefresh);
     };
   }, []);
+
+  useEffect(() => {
+    if (sponsors.length === 0) return;
+    intervalRef.current = setInterval(() => {
+      setCurrentSponsor((prev) => (prev + 1) % sponsors.length);
+    }, 2500);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [sponsors.length]);
 
   function getAvailability(dt_tracker: string) {
     const now = moment(); // local time
@@ -115,7 +142,10 @@ export default function SearchPage() {
             Monitorea el estado y actividad de todos los conductores Wari
           </p>
           <button
-            onClick={fetchDrivers}
+            onClick={() => {
+              fetchDrivers();
+              fetchSponsors();
+            }}
             className="flex items-center gap-2 bg-wari-blue hover:bg-[#189db9] text-white px-4 py-2 rounded-full font-montserrat font-semibold transition-colors mt-2"
             disabled={isLoading}
             aria-label="Refrescar listado"
@@ -128,22 +158,22 @@ export default function SearchPage() {
         </div>
 
         {/* Barra de búsqueda */}
-        <div className="w-full shadow-md bg-wari-yellow rounded-3xl py-6 px-6 mb-6">
+        <div className="w-full shadow-md bg-wari-yellow rounded-3xl py-4 px-2 mb-6">
           <form
             onSubmit={(e) => e.preventDefault()}
             className="flex flex-col items-center"
           >
-            <div className="w-full flex items-center bg-white rounded-4xl overflow-hidden mb-4 border border-gray-200">
+            <div className="w-full flex items-center bg-white rounded-4xl overflow-hidden mb-2 border border-gray-200">
               <input
                 type="text"
-                placeholder="Buscar por número, placa o tipo de vehículo"
-                className="flex-1 py-3 px-4 outline-none font-montserrat"
+                placeholder="Buscar por placa o número de celular"
+                className="flex-1 py-2 px-3 text-sm md:py-3 md:px-4 outline-none font-montserrat"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               <button
                 type="submit"
-                className="bg-black hover:bg-[#3a3426] text-white p-3 m-1 rounded-full"
+                className="bg-black hover:bg-[#3a3426] text-white p-2 md:p-3 m-1 rounded-full"
                 aria-label="Buscar"
               >
                 <SearchIcon className="w-5 h-5 fill-white" />
@@ -178,6 +208,11 @@ export default function SearchPage() {
                   driver?.hawkData?.dt_last_move
                 );
 
+                const driverName =
+                  driver.hawkData?.custom_fields?.find(
+                    (f) => f.name === "complete_name"
+                  )?.value || driver.hawkData?.name;
+
                 return (
                   <div
                     key={driver.id}
@@ -193,7 +228,7 @@ export default function SearchPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-2 mb-1">
                             <h3 className="font-montserrat font-bold text-lg text-gray-900">
-                              {driver.hawkData?.name}
+                              {driverName}
                             </h3>
                             <span
                               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${vehicleStatus.color}`}
@@ -275,6 +310,37 @@ export default function SearchPage() {
               Ir al inicio
             </button>
           </Link>
+        </div>
+        <div className="mt-10 mb-2 flex flex-col items-center">
+          <span className="text-sm md:text-base text-gray-400 mb-3 font-semibold">
+            Auspiciado por
+          </span>
+          <div className="relative w-56 h-20 md:w-72 md:h-28 flex items-center justify-center overflow-hidden">
+            {sponsors.map((s, idx) => (
+              <a
+                key={s.id}
+                href={s.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`
+        absolute flex items-center justify-center w-full h-full transition-all duration-700 ease-in-out
+        ${
+          idx === currentSponsor
+            ? "opacity-100 translate-x-0 z-10"
+            : "opacity-0 translate-x-10 pointer-events-none z-0"
+        }
+      `}
+                aria-label={s.name}
+                style={{ left: 0, right: 0, margin: "auto" }}
+              >
+                <img
+                  src={s.logoUrl}
+                  alt={s.name}
+                  className="h-16 md:h-24 object-contain max-w-[220px] md:max-w-[280px] mx-auto"
+                />
+              </a>
+            ))}
+          </div>
         </div>
       </div>
     </div>
