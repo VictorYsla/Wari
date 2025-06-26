@@ -41,6 +41,7 @@ export default function SearchPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [refresh, setRefresh] = useState(0);
 
   // Extrae la función para poder llamarla manualmente
   const fetchDrivers = async () => {
@@ -63,6 +64,13 @@ export default function SearchPage() {
 
   useEffect(() => {
     fetchDrivers();
+    const handleRefresh = () => setRefresh((r) => r + 1);
+    window.addEventListener("click", handleRefresh);
+    window.addEventListener("touchstart", handleRefresh);
+    return () => {
+      window.removeEventListener("click", handleRefresh);
+      window.removeEventListener("touchstart", handleRefresh);
+    };
   }, []);
 
   function getAvailability(dt_tracker: string) {
@@ -91,7 +99,7 @@ export default function SearchPage() {
         (d.plate?.toLowerCase?.().includes(q) ?? false) ||
         (d.vehicleType?.toLowerCase?.().includes(q) ?? false)
     );
-  }, [searchQuery, drivers]);
+  }, [searchQuery, drivers, refresh]);
 
   return (
     <div className="min-h-screen bg-wari-gray flex flex-col items-center justify-start p-4 md:py-12">
@@ -167,7 +175,7 @@ export default function SearchPage() {
               filteredDrivers.map((driver) => {
                 const vehicleStatus = getVehicleStatus(driver);
                 const availability = getAvailability(
-                  driver.hawkData.dt_tracker
+                  driver?.hawkData?.dt_tracker
                 );
 
                 return (
@@ -185,7 +193,7 @@ export default function SearchPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-2 mb-1">
                             <h3 className="font-montserrat font-bold text-lg text-gray-900">
-                              {driver.hawkData.name}
+                              {driver.hawkData?.name}
                             </h3>
                             <span
                               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${vehicleStatus.color}`}
@@ -213,7 +221,7 @@ export default function SearchPage() {
                             <div className="flex items-center">
                               <span className="font-medium">Tipo:</span>
                               <span className="ml-1 font-montserrat">
-                                {driver.hawkData.model}
+                                {driver.hawkData?.model}
                               </span>
                             </div>
                             <div className="flex items-center">
@@ -240,9 +248,9 @@ export default function SearchPage() {
                             title={availability.label}
                           ></span>
                           <span className="font-montserrat">
-                            {driver.hawkData.dt_tracker
+                            {driver.hawkData?.dt_tracker
                               ? convertUtcToDeviceTime(
-                                  driver.hawkData.dt_tracker
+                                  driver.hawkData?.dt_tracker
                                 )
                               : "-"}
                           </span>
