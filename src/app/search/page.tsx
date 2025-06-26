@@ -1,113 +1,116 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Logo from "@/assets/svgs/logo-01.svg";
 import SearchIcon from "@/assets/svgs/icon-magni-glass.svg";
 import Link from "next/link";
-import { Loader } from "lucide-react";
+import {
+  Loader,
+  User,
+  Car,
+  CheckCircle,
+  Clock,
+  XCircle,
+  RefreshCw,
+} from "lucide-react";
+import { Driver, VehicleStatus } from "./types";
+import { convertUtcToDeviceTime } from "@/helpers/time";
+
+function getVehicleStatus(driver: Driver): VehicleStatus {
+  if (driver.is_active && !driver.is_expired)
+    return {
+      status: "connected",
+      label: "Activo",
+      color: "bg-wari-green",
+    };
+  if (driver.is_active && driver.is_expired)
+    return {
+      status: "disconnected",
+      label: "Expirado",
+      color: "bg-wari-yellow text-black",
+    };
+  return {
+    status: "inactive",
+    label: "Inactivo",
+    color: "bg-wari-red",
+  };
+}
 
 export default function SearchPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResult, setSearchResult] = useState<{
-    isActive: boolean;
-    message: string;
-  } | null>(null);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
 
-  const handleSearch = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const trimmedQuery = searchQuery.trim();
-    if (!trimmedQuery) return;
-
+  // Extrae la función para poder llamarla manualmente
+  const fetchDrivers = async () => {
     setIsLoading(true);
-
-    const plateToSearch = trimmedQuery.toUpperCase();
-
     try {
-      const response = await fetch("/api/search-user", {
+      const res = await fetch("/api/get-all-users-ordered", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plate: plateToSearch }),
       });
-
-      const data = await response.json();
-
-      let was_verified = false;
-      let is_user_expired = false;
-
-      if (!data.success || !data.data) {
-        setSearchResult({
-          isActive: false,
-          message: "Este vehículo no está registrado en nuestro sistema",
-        });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.users)) {
+        setDrivers(data.users);
       } else {
-        const { is_active, is_expired } = data.data;
-
-        is_user_expired = is_expired;
-        was_verified = is_active;
-
-        if (is_expired && is_active) {
-          setSearchResult({
-            isActive: false,
-            message:
-              "La vigencia de este vehículo ha expirado. El monitoreo no está disponible.",
-          });
-        } else if (!is_active) {
-          setSearchResult({
-            isActive: false,
-            message: "Este vehículo no es un Wari activo",
-          });
-        } else {
-          setSearchResult({
-            isActive: true,
-            message: "Este vehículo es un Wari activo",
-          });
-        }
+        setDrivers([]);
       }
-
-      await fetch(`/api/create-verified-vehicle-searches`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          plate: plateToSearch,
-          was_verified,
-          is_user_expired,
-          imei: data?.data?.imei ?? null,
-          user_id: data?.data?.id ?? null, // opcional si tienes este valor en contexto
-        }),
-      });
-    } catch (err) {
-      setSearchResult({
-        isActive: false,
-        message: "Hubo un error al buscar el vehículo",
-      });
-    } finally {
-      setIsLoading(false);
+    } catch {
+      setDrivers([]);
     }
+    setIsLoading(false);
   };
 
+  useEffect(() => {
+    fetchDrivers();
+  }, []);
+
+  const filteredDrivers = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return drivers;
+    return drivers.filter(
+      (d) =>
+        (d.driverNumber?.toLowerCase?.().includes(q) ?? false) ||
+        (d.plate?.toLowerCase?.().includes(q) ?? false) ||
+        (d.vehicleType?.toLowerCase?.().includes(q) ?? false)
+    );
+  }, [searchQuery, drivers]);
+
   return (
-    <div className="min-h-screen bg-wari-gray flex flex-col items-center justify-center p-4 md:py-12">
-      <div className="bg-white rounded-2xl px-4 py-8 w-full max-w-screen-md">
+    <div className="min-h-screen bg-wari-gray flex flex-col items-center justify-start p-4 md:py-12">
+      <div className="bg-white rounded-2xl px-4 py-8 w-full max-w-screen-lg">
         <div className="flex flex-col items-center mb-8">
           <div className="w-20 h-20 md:w-24 md:h-24 mb-6 relative">
             <Logo className="w-full h-full" />
           </div>
           <h1 className="font-montserrat font-bold text-xl md:text-2xl mb-2">
-            Buscar Conductores
+            Lista de Conductores
           </h1>
           <p className="font-montserrat text-sm leading-5 text-center mb-6">
-            Ingresa la placa del vehículo para verificar si es un Wari activo
+            Monitorea el estado y actividad de todos los conductores Wari
           </p>
+          <button
+            onClick={fetchDrivers}
+            className="flex items-center gap-2 bg-wari-blue hover:bg-[#189db9] text-white px-4 py-2 rounded-full font-montserrat font-semibold transition-colors mt-2"
+            disabled={isLoading}
+            aria-label="Refrescar listado"
+          >
+            <RefreshCw
+              className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
+            />
+            {isLoading ? "Actualizando..." : "Refrescar listado"}
+          </button>
         </div>
 
-        <div className="w-full shadow-md bg-wari-yellow rounded-3xl py-8 px-6 mb-6">
-          <form onSubmit={handleSearch} className="flex flex-col items-center">
-            <div className="w-full flex items-center bg-white rounded-4xl overflow-hidden mb-6 border border-gray-200">
+        {/* Barra de búsqueda */}
+        <div className="w-full shadow-md bg-wari-yellow rounded-3xl py-6 px-6 mb-6">
+          <form
+            onSubmit={(e) => e.preventDefault()}
+            className="flex flex-col items-center"
+          >
+            <div className="w-full flex items-center bg-white rounded-4xl overflow-hidden mb-4 border border-gray-200">
               <input
                 type="text"
-                placeholder="Ingresa la placa del vehículo"
+                placeholder="Buscar por número, placa o tipo de vehículo"
                 className="flex-1 py-3 px-4 outline-none font-montserrat"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -120,32 +123,106 @@ export default function SearchPage() {
                 <SearchIcon className="w-5 h-5 fill-white" />
               </button>
             </div>
-
-            <button
-              type="submit"
-              className="w-full md:w-2/3 bg-black hover:bg-[#3a3426] text-white py-4 rounded-4xl text-[15px] font-montserrat font-bold md:text-lg flex items-center justify-center"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <Loader className="h-5 w-5 animate-spin" />
-              ) : (
-                "Buscar"
-              )}
-            </button>
           </form>
         </div>
 
-        {searchResult && (
-          <div
-            className={`w-full shadow-md rounded-3xl py-6 px-6 text-center ${
-              searchResult.isActive
-                ? "bg-wari-green text-white"
-                : "bg-wari-red text-white"
-            }`}
-          >
-            <p className="font-montserrat font-bold text-lg md:text-xl">
-              {searchResult.message}
-            </p>
+        {/* Lista de conductores */}
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader className="h-8 w-8 animate-spin text-wari-blue" />
+            <span className="ml-2 font-montserrat text-gray-600">
+              Cargando conductores...
+            </span>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredDrivers.length === 0 ? (
+              <div className="text-center py-12">
+                <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="font-montserrat text-gray-600">
+                  {searchQuery.trim()
+                    ? "No se encontraron conductores que coincidan con tu búsqueda"
+                    : "No hay conductores registrados"}
+                </p>
+              </div>
+            ) : (
+              filteredDrivers.map((driver) => {
+                const vehicleStatus = getVehicleStatus(driver);
+
+                return (
+                  <div
+                    key={driver.id}
+                    className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                      <div className="flex items-start space-x-4 mb-4 md:mb-0">
+                        <div className="flex-shrink-0">
+                          <div className="w-12 h-12 bg-wari-blue rounded-full flex items-center justify-center">
+                            <User className="h-6 w-6 text-white" />
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <h3 className="font-montserrat font-bold text-lg text-gray-900">
+                              {driver.hawkData.name}
+                            </h3>
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${vehicleStatus.color}`}
+                            >
+                              {vehicleStatus.status === "connected" && (
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                              )}
+                              {vehicleStatus.status === "disconnected" && (
+                                <Clock className="w-3 h-3 mr-1" />
+                              )}
+                              {vehicleStatus.status === "inactive" && (
+                                <XCircle className="w-3 h-3 mr-1" />
+                              )}
+                              {vehicleStatus.label}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm text-gray-600">
+                            <div className="flex items-center">
+                              <Car className="h-4 w-4 mr-1 text-gray-400" />
+                              <span className="font-medium">Placa:</span>
+                              <span className="ml-1 font-montserrat">
+                                {driver.plate}
+                              </span>
+                            </div>
+                            <div className="flex items-center">
+                              <span className="font-medium">Tipo:</span>
+                              <span className="ml-1 font-montserrat">
+                                {driver.hawkData.model}
+                              </span>
+                            </div>
+                            <div className="flex items-center">
+                              <span className="font-medium">Viajes:</span>
+                              <span className="ml-1 font-montserrat font-bold text-wari-blue">
+                                {driver.completedTrips}
+                              </span>
+                            </div>
+                            <div className="flex items-center">
+                              <span className="font-medium">Celular:</span>
+                              <span className="ml-1 font-montserrat">
+                                {driver.driverNumber}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end text-xs text-gray-500">
+                        <span>Última actualización:</span>
+                        <span className="font-montserrat">
+                          {driver.hawkData.dt_tracker
+                            ? convertUtcToDeviceTime(driver.hawkData.dt_tracker)
+                            : "-"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         )}
 

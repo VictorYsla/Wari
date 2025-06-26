@@ -25,7 +25,7 @@ export function convertTimestamptzToUserTimeZone(
 ) {
   const formattedDate = moment(timestamptz)
     .tz(time_zone || "America/Bogota") // zona horaria GMT-5
-    .format("DD-MM-2026");
+    .format("DD-MM-YYYY");
 
   return formattedDate;
 }
