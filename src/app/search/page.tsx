@@ -175,7 +175,7 @@ export default function SearchPage() {
               filteredDrivers.map((driver) => {
                 const vehicleStatus = getVehicleStatus(driver);
                 const availability = getAvailability(
-                  driver?.hawkData?.dt_tracker
+                  driver?.hawkData?.dt_last_move
                 );
 
                 return (
@@ -248,9 +248,9 @@ export default function SearchPage() {
                             title={availability.label}
                           ></span>
                           <span className="font-montserrat">
-                            {driver.hawkData?.dt_tracker
+                            {driver.hawkData?.dt_last_move
                               ? convertUtcToDeviceTime(
-                                  driver.hawkData?.dt_tracker
+                                  driver.hawkData?.dt_last_move
                                 )
                               : "-"}
                           </span>
