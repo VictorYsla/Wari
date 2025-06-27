@@ -233,7 +233,7 @@ export const InfiniteCarousel: React.FC<InfiniteCarouselProps> = ({
           <div
             key={`desktop-slide-${slideIdx}`}
             className={clsx(
-              "grid grid-cols-3 grid-rows-2 gap-4 w-full",
+              "grid grid-cols-3 grid-rows-2 gap-8 w-full", // gap-8 para más espacio
               slide.length < 6 && "place-items-center"
             )}
             style={{
@@ -249,7 +249,11 @@ export const InfiniteCarousel: React.FC<InfiniteCarouselProps> = ({
                   isMobile: false,
                   total: slide.length,
                 })}
-                className="relative flex items-center justify-center"
+                className={clsx(
+                  "relative flex items-center justify-center transition-all duration-300",
+                  "bg-white/80 border border-gray-200 rounded-xl shadow-sm",
+                  "hover:shadow-lg hover:bg-white"
+                )}
                 style={{
                   aspectRatio: desktopAspectRatio,
                 }}
