@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import { useSwipeable } from "react-swipeable";
 import clsx from "clsx";
 import Image from "next/image";
 
@@ -84,13 +83,6 @@ export const InfiniteCarousel: React.FC<InfiniteCarouselProps> = ({
     setIndex((i) => i - 1);
   };
 
-  const handlers = useSwipeable({
-    onSwipedLeft: incIndex,
-    onSwipedRight: decIndex,
-    preventScrollOnSwipe: true,
-    trackMouse: true,
-  });
-
   // Loop infinito: salta sin animación cuando llegas a los extremos duplicados
   useEffect(() => {
     if (slides.length <= 1) return;
@@ -163,7 +155,6 @@ export const InfiniteCarousel: React.FC<InfiniteCarouselProps> = ({
     <section
       className="overflow-hidden w-full relative"
       ref={containerRef}
-      {...(!isLocked ? handlers : {})}
       onDragStart={(e) => e.preventDefault()}
       role="region"
       aria-label={ariaLabel}
@@ -287,18 +278,6 @@ export const InfiniteCarousel: React.FC<InfiniteCarouselProps> = ({
           </div>
         ))}
       </div>
-
-      {/* Optional controls */}
-      {controls && slides.length > 1 && (
-        <div className="absolute bottom-2 right-2 z-10 flex gap-2">
-          <button onClick={decIndex} aria-label="Previous Slide" type="button">
-            ◀️
-          </button>
-          <button onClick={incIndex} aria-label="Next Slide" type="button">
-            ▶️
-          </button>
-        </div>
-      )}
     </section>
   );
 };
