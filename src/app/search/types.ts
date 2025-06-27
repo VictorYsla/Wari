@@ -79,5 +79,6 @@ export type Sponsor = {
   logoUrl: string;
   website: string;
   created_at: string;
+  is_active: boolean;
   updated_at: string;
 };
