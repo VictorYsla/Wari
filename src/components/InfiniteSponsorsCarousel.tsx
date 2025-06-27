@@ -30,7 +30,7 @@ const DEFAULT_ASPECT_RATIO = [16, 9];
 const VISIBLE_COUNT = 3;
 const ROWS = 2;
 
-// Agrupa los frames en slides de 3x2 (6 por slide), sin rellenar con nulls
+// Agrupa los frames en slides de 3x2 (6 por slide), SIN rellenar con nulls
 function groupFrames(frames: Frame[], perSlide: number) {
   const slides: Frame[][] = [];
   for (let i = 0; i < frames.length; i += perSlide) {
@@ -48,7 +48,7 @@ export const InfiniteCarousel: React.FC<InfiniteCarouselProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Agrupa en slides de 6 (3x2)
+  // Agrupa en slides de 6 (3x2), solo los reales
   const slides = groupFrames(frames, VISIBLE_COUNT * ROWS);
 
   // Duplica para loop infinito solo si hay más de 1 slide
@@ -150,7 +150,7 @@ export const InfiniteCarousel: React.FC<InfiniteCarouselProps> = ({
     return null;
   }
 
-  // Renderiza cada slide como una grid de 2 filas x 3 columnas
+  // Renderiza cada slide como una grid de 2 filas x 3 columnas (o 1 fila si <=3)
   return (
     <section
       className="overflow-hidden w-full relative"
@@ -173,48 +173,51 @@ export const InfiniteCarousel: React.FC<InfiniteCarouselProps> = ({
           <div
             key={`mobile-slide-${slideIdx}`}
             className={clsx(
-              "grid grid-cols-3 grid-rows-2 gap-2 w-full",
-              slide.length < 6 && "place-items-center"
+              slide.length <= 3
+                ? "grid grid-cols-3 grid-rows-1 gap-2 w-full"
+                : "grid grid-cols-3 grid-rows-2 gap-2 w-full"
             )}
             style={{
               width: `${100 / infiniteSlides.length}%`,
             }}
             aria-hidden={slideIdx !== index}
           >
-            {slide.map((frame, i) => (
-              <div
-                key={deriveFrameKey({
-                  frame,
-                  i,
-                  isMobile: true, // o false para desktop
-                  total: slide.length,
-                })}
-                className="relative flex items-center justify-center"
-                style={{
-                  aspectRatio: mobileAspectRatio, // o desktopAspectRatio
-                }}
-              >
-                {frame?.website ? (
-                  <a
-                    href={frame.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    tabIndex={0}
-                    aria-label={
-                      frame.mobile?.image?.alt ||
-                      frame.desktop?.image?.alt ||
-                      "Sponsor"
-                    }
-                    className="flex items-center justify-center w-full h-full"
-                    style={{ display: "flex" }}
-                  >
+            {slide.map((frame, i) =>
+              frame ? (
+                <div
+                  key={deriveFrameKey({
+                    frame,
+                    i,
+                    isMobile: true,
+                    total: slide.length,
+                  })}
+                  className="relative flex items-center justify-center"
+                  style={{
+                    aspectRatio: mobileAspectRatio,
+                  }}
+                >
+                  {frame.website ? (
+                    <a
+                      href={frame.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      tabIndex={0}
+                      aria-label={
+                        frame.mobile?.image?.alt ||
+                        frame.desktop?.image?.alt ||
+                        "Sponsor"
+                      }
+                      className="flex items-center justify-center w-full h-full"
+                      style={{ display: "flex" }}
+                    >
+                      <FrameRenderer image={frame?.mobile?.image} />
+                    </a>
+                  ) : (
                     <FrameRenderer image={frame?.mobile?.image} />
-                  </a>
-                ) : (
-                  <FrameRenderer image={frame?.mobile?.image} />
-                )}
-              </div>
-            ))}
+                  )}
+                </div>
+              ) : null
+            )}
           </div>
         ))}
       </div>
@@ -233,52 +236,55 @@ export const InfiniteCarousel: React.FC<InfiniteCarouselProps> = ({
           <div
             key={`desktop-slide-${slideIdx}`}
             className={clsx(
-              "grid grid-cols-3 grid-rows-2 gap-8 w-full", // gap-8 para más espacio
-              slide.length < 6 && "place-items-center"
+              slide.length <= 3
+                ? "grid grid-cols-3 grid-rows-1 gap-8 w-full"
+                : "grid grid-cols-3 grid-rows-2 gap-8 w-full"
             )}
             style={{
               width: `${100 / infiniteSlides.length}%`,
             }}
             aria-hidden={slideIdx !== index}
           >
-            {slide.map((frame, i) => (
-              <div
-                key={deriveFrameKey({
-                  frame,
-                  i,
-                  isMobile: false,
-                  total: slide.length,
-                })}
-                className={clsx(
-                  "relative flex items-center justify-center transition-all duration-300",
-                  "bg-white/80 border border-gray-200 rounded-xl shadow-sm",
-                  "hover:shadow-lg hover:bg-white"
-                )}
-                style={{
-                  aspectRatio: desktopAspectRatio,
-                }}
-              >
-                {frame?.website ? (
-                  <a
-                    href={frame.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    tabIndex={0}
-                    aria-label={
-                      frame.desktop?.image?.alt ||
-                      frame.mobile?.image?.alt ||
-                      "Sponsor"
-                    }
-                    className="flex items-center justify-center w-full h-full"
-                    style={{ display: "flex" }}
-                  >
+            {slide.map((frame, i) =>
+              frame ? (
+                <div
+                  key={deriveFrameKey({
+                    frame,
+                    i,
+                    isMobile: false,
+                    total: slide.length,
+                  })}
+                  className={clsx(
+                    "relative flex items-center justify-center transition-all duration-300",
+                    "bg-white/80 border border-gray-200 rounded-xl shadow-sm",
+                    "hover:shadow-lg hover:bg-white"
+                  )}
+                  style={{
+                    aspectRatio: desktopAspectRatio,
+                  }}
+                >
+                  {frame.website ? (
+                    <a
+                      href={frame.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      tabIndex={0}
+                      aria-label={
+                        frame.desktop?.image?.alt ||
+                        frame.mobile?.image?.alt ||
+                        "Sponsor"
+                      }
+                      className="flex items-center justify-center w-full h-full"
+                      style={{ display: "flex" }}
+                    >
+                      <FrameRenderer image={frame?.desktop?.image} />
+                    </a>
+                  ) : (
                     <FrameRenderer image={frame?.desktop?.image} />
-                  </a>
-                ) : (
-                  <FrameRenderer image={frame?.desktop?.image} />
-                )}
-              </div>
-            ))}
+                  )}
+                </div>
+              ) : null
+            )}
           </div>
         ))}
       </div>

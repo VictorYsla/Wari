@@ -12,6 +12,8 @@ import {
   Clock,
   XCircle,
   RefreshCw,
+  Check,
+  Copy,
 } from "lucide-react";
 import { Driver, Sponsor, VehicleStatus } from "./types";
 import { convertUtcToDeviceTime } from "@/helpers/time";
@@ -46,6 +48,7 @@ export default function SearchPage() {
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [currentSponsor, setCurrentSponsor] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [copied, setCopied] = useState<{ [key: string]: boolean }>({});
 
   // Extrae la función para poder llamarla manualmente
   const fetchDrivers = async () => {
@@ -76,6 +79,12 @@ export default function SearchPage() {
     } catch {
       setSponsors([]);
     }
+  };
+
+  const handleCopy = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied((prev) => ({ ...prev, [key]: true }));
+    setTimeout(() => setCopied((prev) => ({ ...prev, [key]: false })), 1200);
   };
 
   useEffect(() => {
@@ -274,6 +283,20 @@ export default function SearchPage() {
                               <span className="ml-1 font-montserrat">
                                 {driver.plate}
                               </span>
+                              <button
+                                onClick={() =>
+                                  handleCopy(driver.plate, `plate-${driver.id}`)
+                                }
+                                className={`ml-2 p-1 rounded-full border border-gray-200 bg-gray-50 hover:bg-wari-blue hover:text-white transition-colors`}
+                                title="Copiar placa"
+                                type="button"
+                              >
+                                {copied[`plate-${driver.id}`] ? (
+                                  <Check className="w-4 h-4 text-green-500" />
+                                ) : (
+                                  <Copy className="w-4 h-4" />
+                                )}
+                              </button>
                             </div>
                             <div className="flex items-center">
                               <span className="font-medium">Tipo:</span>
@@ -292,6 +315,23 @@ export default function SearchPage() {
                               <span className="ml-1 font-montserrat">
                                 {driver.driverNumber}
                               </span>
+                              <button
+                                onClick={() =>
+                                  handleCopy(
+                                    driver.driverNumber,
+                                    `phone-${driver.id}`
+                                  )
+                                }
+                                className={`ml-2 p-1 rounded-full border border-gray-200 bg-gray-50 hover:bg-wari-blue hover:text-white transition-colors`}
+                                title="Copiar celular"
+                                type="button"
+                              >
+                                {copied[`phone-${driver.id}`] ? (
+                                  <Check className="w-4 h-4 text-green-500" />
+                                ) : (
+                                  <Copy className="w-4 h-4" />
+                                )}
+                              </button>
                             </div>
                           </div>
                         </div>
