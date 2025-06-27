@@ -199,8 +199,6 @@ export const InfiniteCarousel: React.FC<InfiniteCarouselProps> = ({
                   {frame.website ? (
                     <a
                       href={frame.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
                       tabIndex={0}
                       aria-label={
                         frame.mobile?.image?.alt ||
