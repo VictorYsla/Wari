@@ -16,6 +16,7 @@ import {
 import { Driver, Sponsor, VehicleStatus } from "./types";
 import { convertUtcToDeviceTime } from "@/helpers/time";
 import moment from "moment";
+import { InfiniteCarousel } from "@/components/InfiniteSponsorsCarousel";
 
 function getVehicleStatus(driver: Driver): VehicleStatus {
   if (driver.is_active && !driver.is_expired)
@@ -127,6 +128,27 @@ export default function SearchPage() {
         (d.vehicleType?.toLowerCase?.().includes(q) ?? false)
     );
   }, [searchQuery, drivers, refresh]);
+
+  const sponsorFrames = sponsors.map((s) => ({
+    key: s.id,
+    website: s.website,
+    mobile: {
+      image: {
+        src: s.logoUrl,
+        width: 160,
+        height: 96,
+        alt: s.name,
+      },
+    },
+    desktop: {
+      image: {
+        src: s.logoUrl,
+        width: 160,
+        height: 96,
+        alt: s.name,
+      },
+    },
+  }));
 
   return (
     <div className="min-h-screen bg-wari-gray flex flex-col items-center justify-start p-4 md:py-12">
@@ -315,32 +337,13 @@ export default function SearchPage() {
           <span className="text-sm md:text-base text-gray-400 mb-3 font-semibold">
             Auspiciado por
           </span>
-          <div className="relative w-56 h-20 md:w-72 md:h-28 flex items-center justify-center overflow-hidden">
-            {sponsors.map((s, idx) => (
-              <a
-                key={s.id}
-                href={s.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`
-        absolute flex items-center justify-center w-full h-full transition-all duration-700 ease-in-out
-        ${
-          idx === currentSponsor
-            ? "opacity-100 translate-x-0 z-10"
-            : "opacity-0 translate-x-10 pointer-events-none z-0"
-        }
-      `}
-                aria-label={s.name}
-                style={{ left: 0, right: 0, margin: "auto" }}
-              >
-                <img
-                  src={s.logoUrl}
-                  alt={s.name}
-                  className="h-16 md:h-24 object-contain max-w-[220px] md:max-w-[280px] mx-auto"
-                />
-              </a>
-            ))}
-          </div>
+          <InfiniteCarousel
+            frames={sponsorFrames}
+            slideDuration={2500}
+            autoplay={true}
+            controls={true}
+            ariaLabel="Carrusel de sponsors"
+          />
         </div>
       </div>
     </div>
