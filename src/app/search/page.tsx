@@ -124,7 +124,7 @@ export default function SearchPage() {
         color: "bg-yellow-400 text-black",
       };
     }
-    return { label: "Probablemente no disponible", color: "bg-red-500" };
+    return { label: "Probablemente no disponible", color: "bg-gray-400" };
   }
 
   const filteredDrivers = useMemo(() => {
@@ -244,6 +244,11 @@ export default function SearchPage() {
                     (f) => f.name === "complete_name"
                   )?.value || driver.hawkData?.name;
 
+                const phoneNumber =
+                  driver.hawkData?.custom_fields?.find(
+                    (f) => f.name === "phone_number"
+                  )?.value || "No disponible";
+
                 return (
                   <div
                     key={driver.id}
@@ -313,7 +318,7 @@ export default function SearchPage() {
                             <div className="flex items-center">
                               <span className="font-medium">Celular:</span>
                               <span className="ml-1 font-montserrat">
-                                {driver.driverNumber}
+                                {phoneNumber}
                               </span>
                               <button
                                 onClick={() =>
